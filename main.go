@@ -8,9 +8,15 @@ import (
 	"net"
 	"sync"
 
+	skipcommon "github.com/Workiva/go-datastructures/common"
+	"github.com/Workiva/go-datastructures/slice/skip"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	taskmaster "github.com/mkmik/taskmaster/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 type Flags struct {
@@ -24,6 +30,44 @@ func (f *Flags) Bind(fs *flag.FlagSet) {
 	fs.StringVar(&f.ListenRPC, "listen-rpc", ":50053", "RPC listen address")
 }
 
+func labelKey(key, value string) string {
+	return fmt.Sprintf("%s/%s", key, value)
+}
+
+type skipNode struct {
+	ts timestamp.Timestamp
+	id int64
+}
+
+// Compare compares skipNodes with reverse timestamp order.
+func (a skipNode) Compare(b skipcommon.Comparator) int {
+	ta := a.ts
+	tb := b.(skipNode).ts
+
+	aSecs, bSecs := ta.Seconds, tb.Seconds
+	if aSecs < bSecs {
+		return 1
+	} else if aSecs > bSecs {
+		return -1
+	}
+
+	aNanos, bNanos := ta.Nanos, tb.Nanos
+	if aNanos < bNanos {
+		return 1
+	} else if aNanos > bNanos {
+		return -1
+	}
+
+	aId, bId := a.id, b.(skipNode).id
+	if aId > bId {
+		return 1
+	} else if aId < bId {
+		return -1
+	}
+
+	return 0
+}
+
 // server is used to implement taskmaster.Taskmaster
 type server struct {
 	taskmaster.UnimplementedTaskmasterServer
@@ -32,16 +76,14 @@ type server struct {
 	next   int64
 	tasks  map[int64]taskmaster.Task
 	labels map[string]map[int64]struct{}
-}
-
-func labelKey(key, value string) string {
-	return fmt.Sprintf("%s/%s", key, value)
+	groups map[string]*skip.SkipList
 }
 
 func newServer() *server {
 	return &server{
 		tasks:  map[int64]taskmaster.Task{},
 		labels: map[string]map[int64]struct{}{},
+		groups: map[string]*skip.SkipList{},
 	}
 }
 
@@ -78,13 +120,21 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 			key := labelKey(k, v)
 			delete(s.labels[key], i)
 		}
+
+		s.groups[t.Group].Delete(skipNode{*t.NotBefore, t.Id})
 		delete(s.tasks, i)
 	}
 
 	res := make([]int64, len(in.Created))
 	for i, c := range in.Created {
-		res[i] = s.next
 		c.Id = s.next
+		s.next++
+
+		res[i] = c.Id
+
+		if c.NotBefore == nil {
+			c.NotBefore = ptypes.TimestampNow()
+		}
 
 		for k, v := range c.Labels {
 			key := labelKey(k, v)
@@ -95,8 +145,10 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 		}
 
 		s.tasks[c.Id] = *c
-
-		s.next++
+		if s.groups[c.Group] == nil {
+			s.groups[c.Group] = skip.New(uint(10))
+		}
+		s.groups[c.Group].Insert(skipNode{*c.NotBefore, c.Id})
 	}
 	return &taskmaster.UpdateResponse{CreatedIds: res}, nil
 }
@@ -105,17 +157,23 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Received: %v", in)
-
-	var res []*taskmaster.Task
-	for k, v := range in.Selector.Labels {
-		key := labelKey(k, v)
-		for i := range s.labels[key] {
-			t := s.tasks[i]
-			res = append(res, &t)
-		}
+	if in.Now == nil {
+		in.Now = ptypes.TimestampNow()
 	}
 
-	return &taskmaster.QueryResponse{Tasks: res}, nil
+	sk := s.groups[in.Group]
+	if sk == nil {
+		return nil, status.Errorf(codes.NotFound, "empty group %q", in.Group)
+	}
+
+	it := sk.Iter(skipNode{*in.Now, 0})
+	v := it.Value()
+	if v == nil {
+		return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", in.Now)
+	}
+	id := v.(skipNode).id
+	t := s.tasks[id]
+	return &taskmaster.QueryResponse{Task: &t}, nil
 }
 
 func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskmaster.DebugResponse, error) {
@@ -139,6 +197,7 @@ func mainE(flags Flags) error {
 	taskmaster.RegisterTaskmasterServer(s, newServer())
 	reflection.Register(s)
 
+	log.Printf("serving on %s", flags.ListenRPC)
 	if err := s.Serve(lis); err != nil {
 		return fmt.Errorf("failed to serve: %w", err)
 	}

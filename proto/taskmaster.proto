@@ -5,6 +5,7 @@ package taskmaster;
 option go_package = "github.com/mkmik/proto;taskmaster";
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
 
 service Taskmaster {
@@ -24,9 +25,11 @@ message UpdateResponse {
 }
 
 message Task {
-  int64 id = 1; // omitted when creating a task
+  int64 id = 1;
+  string group = 2;
   google.protobuf.Any data = 3;
   map<string, string> labels = 4;
+  google.protobuf.Timestamp not_before = 5;
 }
 
 message TaskRef {
@@ -41,12 +44,13 @@ message LabelSelector {
 }
 
 message QueryRequest {
-  LabelSelector selector = 2;
+  string group = 1;
+  google.protobuf.Timestamp now = 4;
   google.protobuf.Duration own_for = 3;
 }
 
 message QueryResponse {
-  repeated Task tasks = 1;
+  Task task = 1;
 }
 
 ///
