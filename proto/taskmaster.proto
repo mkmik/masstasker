@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package taskmaster;
+
+option go_package = "github.com/mkmik/proto;taskmaster";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/any.proto";
+
+service Taskmaster {
+  rpc Update (UpdateRequest) returns (UpdateResponse);
+  rpc Query (QueryRequest) returns (QueryResponse);
+
+  rpc Debug (DebugRequest) returns (DebugResponse);
+}
+
+message UpdateRequest {
+  repeated Task created = 1;
+  repeated TaskRef deleted = 2;
+}
+
+message UpdateResponse {
+  repeated int64 created_ids = 1;
+}
+
+message Task {
+  int64 id = 1; // omitted when creating a task
+  google.protobuf.Any data = 3;
+  map<string, string> labels = 4;
+}
+
+message TaskRef {
+  oneof sel {
+    int64 id = 1;
+    LabelSelector selector = 2;
+  }
+}
+
+message LabelSelector {
+  map<string, string> labels = 1;
+}
+
+message QueryRequest {
+  LabelSelector selector = 2;
+  google.protobuf.Duration own_for = 3;
+}
+
+message QueryResponse {
+  repeated Task tasks = 1;
+}
+
+///
+
+message DebugRequest {}
+message DebugResponse {}
+
+message Test {
+  string foo = 1;
+}
