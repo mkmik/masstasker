@@ -47,6 +47,7 @@ message QueryRequest {
   string group = 1;
   google.protobuf.Timestamp now = 4;
   google.protobuf.Duration own_for = 3;
+  bool wait = 5;
 }
 
 message QueryResponse {

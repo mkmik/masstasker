@@ -89,6 +89,33 @@ func newServer() *server {
 	}
 }
 
+func (s *server) delete(i uint64) {
+	t := s.tasks[i]
+	for k, v := range t.Labels {
+		key := labelKey(k, v)
+		delete(s.labels[key], i)
+	}
+
+	s.groups[t.Group].Delete(skipNode{*t.NotBefore, t.Id})
+	delete(s.tasks, i)
+}
+
+func (s *server) create(c taskmaster.Task) {
+	for k, v := range c.Labels {
+		key := labelKey(k, v)
+		if s.labels[key] == nil {
+			s.labels[key] = map[uint64]struct{}{}
+		}
+		s.labels[key][c.Id] = struct{}{}
+	}
+
+	s.tasks[c.Id] = c
+	if s.groups[c.Group] == nil {
+		s.groups[c.Group] = skip.New(uint(10))
+	}
+	s.groups[c.Group].Insert(skipNode{*c.NotBefore, c.Id})
+}
+
 func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*taskmaster.UpdateResponse, error) {
 	s.Lock()
 	defer s.Unlock()
@@ -117,14 +144,7 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 	}
 
 	for _, i := range del {
-		t := s.tasks[i]
-		for k, v := range t.Labels {
-			key := labelKey(k, v)
-			delete(s.labels[key], i)
-		}
-
-		s.groups[t.Group].Delete(skipNode{*t.NotBefore, t.Id})
-		delete(s.tasks, i)
+		s.delete(i)
 	}
 
 	res := make([]uint64, len(in.Created))
@@ -138,43 +158,58 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 			c.NotBefore = ptypes.TimestampNow()
 		}
 
-		for k, v := range c.Labels {
-			key := labelKey(k, v)
-			if s.labels[key] == nil {
-				s.labels[key] = map[uint64]struct{}{}
-			}
-			s.labels[key][c.Id] = struct{}{}
-		}
-
-		s.tasks[c.Id] = *c
-		if s.groups[c.Group] == nil {
-			s.groups[c.Group] = skip.New(uint(10))
-		}
-		s.groups[c.Group].Insert(skipNode{*c.NotBefore, c.Id})
+		s.create(*c)
 	}
 	return &taskmaster.UpdateResponse{CreatedIds: res}, nil
 }
 
 func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskmaster.QueryResponse, error) {
+	for {
+		now := in.Now
+		if now == nil {
+			now = ptypes.TimestampNow()
+		}
+		res, d, err := s.query(in, now)
+		if err != nil {
+			return nil, err
+		}
+		if d > 0 {
+			if !in.Wait {
+				return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", now)
+			}
+			time.Sleep(d)
+		} else {
+			return res, nil
+		}
+	}
+}
+
+func (s *server) query(in *taskmaster.QueryRequest, now *timestamp.Timestamp) (*taskmaster.QueryResponse, time.Duration, error) {
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Received: %v", in)
-	if in.Now == nil {
-		in.Now = ptypes.TimestampNow()
-	}
 
 	sk := s.groups[in.Group]
 	if sk == nil {
-		return nil, status.Errorf(codes.NotFound, "empty group %q", in.Group)
+		return nil, 0, status.Errorf(codes.NotFound, "empty group %q", in.Group)
 	}
 
 	it := sk.Iter(skipNode{})
 	v := it.Value()
 	if v == nil {
-		return nil, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
+		return nil, 0, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
 	}
-	if v.Compare(skipNode{ts: *in.Now}) > 0 {
-		return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", in.Now)
+	if v.Compare(skipNode{ts: *now}) > 0 {
+		n := v.(skipNode)
+		ts, err := ptypes.Timestamp(&n.ts)
+		if err != nil {
+			return nil, 0, err
+		}
+		now, err := ptypes.Timestamp(now)
+		if err != nil {
+			return nil, 0, err
+		}
+		return nil, ts.Sub(now), nil
 	}
 
 	id := v.(skipNode).id
@@ -183,21 +218,23 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 	if in.OwnFor != nil {
 		d, err := ptypes.Duration(in.OwnFor)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		nt := t
-		nt.Id = s.next
-		s.next++
 		tp, err := ptypes.TimestampProto(time.Now().Add(d))
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		nt.NotBefore = tp
+
+		s.delete(nt.Id)
+		nt.Id = s.next
+		s.next++
+		s.create(nt)
 		t = nt
-		// TODO: actually delete and create the task
 	}
 
-	return &taskmaster.QueryResponse{Task: &t}, nil
+	return &taskmaster.QueryResponse{Task: &t}, 0, nil
 }
 
 func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskmaster.DebugResponse, error) {
