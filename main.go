@@ -82,6 +82,7 @@ type server struct {
 
 func newServer() *server {
 	return &server{
+		next:   1,
 		tasks:  map[uint64]taskmaster.Task{},
 		labels: map[string]map[uint64]struct{}{},
 		groups: map[string]*skip.SkipList{},
