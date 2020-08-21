@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
@@ -177,6 +178,24 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 
 	id := v.(skipNode).id
 	t := s.tasks[id]
+
+	if in.OwnFor != nil {
+		d, err := ptypes.Duration(in.OwnFor)
+		if err != nil {
+			return nil, err
+		}
+		nt := t
+		nt.Id = s.next
+		s.next++
+		tp, err := ptypes.TimestampProto(time.Now().Add(d))
+		if err != nil {
+			return nil, err
+		}
+		nt.NotBefore = tp
+		t = nt
+		// TODO: actually delete and create the task
+	}
+
 	return &taskmaster.QueryResponse{Task: &t}, nil
 }
 
