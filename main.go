@@ -36,7 +36,7 @@ func labelKey(key, value string) string {
 
 type skipNode struct {
 	ts timestamp.Timestamp
-	id int64
+	id uint64
 }
 
 // Compare compares skipNodes with reverse timestamp order.
@@ -73,16 +73,16 @@ type server struct {
 	taskmaster.UnimplementedTaskmasterServer
 
 	sync.Mutex
-	next   int64
-	tasks  map[int64]taskmaster.Task
-	labels map[string]map[int64]struct{}
+	next   uint64
+	tasks  map[uint64]taskmaster.Task
+	labels map[string]map[uint64]struct{}
 	groups map[string]*skip.SkipList
 }
 
 func newServer() *server {
 	return &server{
-		tasks:  map[int64]taskmaster.Task{},
-		labels: map[string]map[int64]struct{}{},
+		tasks:  map[uint64]taskmaster.Task{},
+		labels: map[string]map[uint64]struct{}{},
 		groups: map[string]*skip.SkipList{},
 	}
 }
@@ -92,7 +92,7 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 	defer s.Unlock()
 	log.Printf("Update: %v", in)
 
-	var del []int64
+	var del []uint64
 	for _, d := range in.Deleted {
 		switch d := d.Sel.(type) {
 		case *taskmaster.TaskRef_Id:
@@ -125,7 +125,7 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 		delete(s.tasks, i)
 	}
 
-	res := make([]int64, len(in.Created))
+	res := make([]uint64, len(in.Created))
 	for i, c := range in.Created {
 		c.Id = s.next
 		s.next++
@@ -139,7 +139,7 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 		for k, v := range c.Labels {
 			key := labelKey(k, v)
 			if s.labels[key] == nil {
-				s.labels[key] = map[int64]struct{}{}
+				s.labels[key] = map[uint64]struct{}{}
 			}
 			s.labels[key][c.Id] = struct{}{}
 		}

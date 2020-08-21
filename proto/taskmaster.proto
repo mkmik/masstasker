@@ -21,11 +21,11 @@ message UpdateRequest {
 }
 
 message UpdateResponse {
-  repeated int64 created_ids = 1;
+  repeated uint64 created_ids = 1;
 }
 
 message Task {
-  int64 id = 1;
+  uint64 id = 1;
   string group = 2;
   google.protobuf.Any data = 3;
   map<string, string> labels = 4;
@@ -34,7 +34,7 @@ message Task {
 
 message TaskRef {
   oneof sel {
-    int64 id = 1;
+    uint64 id = 1;
     LabelSelector selector = 2;
   }
 }
