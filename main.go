@@ -39,22 +39,22 @@ type skipNode struct {
 	id uint64
 }
 
-// Compare compares skipNodes with reverse timestamp order.
+// Compare compares skipNodes with timestamp order.
 func (a skipNode) Compare(b skipcommon.Comparator) int {
 	ta := a.ts
 	tb := b.(skipNode).ts
 
 	aSecs, bSecs := ta.Seconds, tb.Seconds
-	if aSecs < bSecs {
+	if aSecs > bSecs {
 		return 1
-	} else if aSecs > bSecs {
+	} else if aSecs < bSecs {
 		return -1
 	}
 
 	aNanos, bNanos := ta.Nanos, tb.Nanos
-	if aNanos < bNanos {
+	if aNanos > bNanos {
 		return 1
-	} else if aNanos > bNanos {
+	} else if aNanos < bNanos {
 		return -1
 	}
 
@@ -166,11 +166,15 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 		return nil, status.Errorf(codes.NotFound, "empty group %q", in.Group)
 	}
 
-	it := sk.Iter(skipNode{*in.Now, 0})
+	it := sk.Iter(skipNode{})
 	v := it.Value()
 	if v == nil {
+		return nil, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
+	}
+	if v.Compare(skipNode{ts: *in.Now}) > 0 {
 		return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", in.Now)
 	}
+
 	id := v.(skipNode).id
 	t := s.tasks[id]
 	return &taskmaster.QueryResponse{Task: &t}, nil
