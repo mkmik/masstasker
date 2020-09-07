@@ -121,6 +121,12 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 	defer s.Unlock()
 	log.Printf("Update: %v", in)
 
+	for _, id := range in.Predicates {
+		if _, found := s.tasks[id]; !found {
+			return nil, status.Errorf(codes.FailedPrecondition, "predicate id %d doesn't exist", id)
+		}
+	}
+
 	var del []uint64
 	for _, d := range in.Deleted {
 		switch d := d.Sel.(type) {

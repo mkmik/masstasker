@@ -18,6 +18,7 @@ service Taskmaster {
 message UpdateRequest {
   repeated Task created = 1;
   repeated TaskRef deleted = 2;
+  repeated uint64 predicates = 3;
 }
 
 message UpdateResponse {
