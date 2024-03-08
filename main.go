@@ -11,13 +11,12 @@ import (
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	taskmaster "github.com/mkmik/taskmaster/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Flags struct {
@@ -36,7 +35,7 @@ func labelKey(key, value string) string {
 }
 
 type skipNode struct {
-	ts timestamp.Timestamp
+	ts timestamppb.Timestamp
 	id uint64
 }
 
@@ -161,7 +160,7 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 		res[i] = c.Id
 
 		if c.NotBefore == nil {
-			c.NotBefore = ptypes.TimestampNow()
+			c.NotBefore = timestamppb.Now()
 		}
 
 		s.create(*c)
@@ -173,7 +172,7 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 	for {
 		now := in.Now
 		if now == nil {
-			now = ptypes.TimestampNow()
+			now = timestamppb.Now()
 		}
 		res, d, err := s.query(in, now)
 		if err != nil {
@@ -190,7 +189,7 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 	}
 }
 
-func (s *server) query(in *taskmaster.QueryRequest, now *timestamp.Timestamp) (*taskmaster.QueryResponse, time.Duration, error) {
+func (s *server) query(in *taskmaster.QueryRequest, now *timestamppb.Timestamp) (*taskmaster.QueryResponse, time.Duration, error) {
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Received: %v", in)
@@ -207,14 +206,8 @@ func (s *server) query(in *taskmaster.QueryRequest, now *timestamp.Timestamp) (*
 	}
 	if v.Compare(skipNode{ts: *now}) > 0 {
 		n := v.(skipNode)
-		ts, err := ptypes.Timestamp(&n.ts)
-		if err != nil {
-			return nil, 0, err
-		}
-		now, err := ptypes.Timestamp(now)
-		if err != nil {
-			return nil, 0, err
-		}
+		ts := n.ts.AsTime()
+		now := now.AsTime()
 		return nil, ts.Sub(now), nil
 	}
 
@@ -222,15 +215,9 @@ func (s *server) query(in *taskmaster.QueryRequest, now *timestamp.Timestamp) (*
 	t := s.tasks[id]
 
 	if in.OwnFor != nil {
-		d, err := ptypes.Duration(in.OwnFor)
-		if err != nil {
-			return nil, 0, err
-		}
+		d := in.OwnFor.AsDuration()
 		nt := t
-		tp, err := ptypes.TimestampProto(time.Now().Add(d))
-		if err != nil {
-			return nil, 0, err
-		}
+		tp := timestamppb.New(time.Now().Add(d))
 		nt.NotBefore = tp
 
 		s.delete(nt.Id)

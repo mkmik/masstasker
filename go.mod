@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/Workiva/go-datastructures v1.1.1
-	github.com/golang/protobuf v1.5.4
+	github.com/golang/protobuf v1.5.4 // indirect
 	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.33.0
 )
