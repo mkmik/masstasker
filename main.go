@@ -35,14 +35,14 @@ func labelKey(key, value string) string {
 }
 
 type skipNode struct {
-	ts timestamppb.Timestamp
+	ts *timestamppb.Timestamp
 	id uint64
 }
 
 // Compare compares skipNodes with timestamp order.
-func (a skipNode) Compare(b skipcommon.Comparator) int {
+func (a *skipNode) Compare(b skipcommon.Comparator) int {
 	ta := a.ts
-	tb := b.(skipNode).ts
+	tb := b.(*skipNode).ts
 
 	aSecs, bSecs := ta.Seconds, tb.Seconds
 	if aSecs > bSecs {
@@ -58,7 +58,7 @@ func (a skipNode) Compare(b skipcommon.Comparator) int {
 		return -1
 	}
 
-	aId, bId := a.id, b.(skipNode).id
+	aId, bId := a.id, b.(*skipNode).id
 	if aId > bId {
 		return 1
 	} else if aId < bId {
@@ -74,7 +74,7 @@ type server struct {
 
 	sync.Mutex
 	next   uint64
-	tasks  map[uint64]taskmaster.Task
+	tasks  map[uint64]*taskmaster.Task
 	labels map[string]map[uint64]struct{}
 	groups map[string]*skip.SkipList
 }
@@ -82,7 +82,7 @@ type server struct {
 func newServer() *server {
 	return &server{
 		next:   1,
-		tasks:  map[uint64]taskmaster.Task{},
+		tasks:  map[uint64]*taskmaster.Task{},
 		labels: map[string]map[uint64]struct{}{},
 		groups: map[string]*skip.SkipList{},
 	}
@@ -95,11 +95,11 @@ func (s *server) delete(i uint64) {
 		delete(s.labels[key], i)
 	}
 
-	s.groups[t.Group].Delete(skipNode{*t.NotBefore, t.Id})
+	s.groups[t.Group].Delete(&skipNode{t.NotBefore, t.Id})
 	delete(s.tasks, i)
 }
 
-func (s *server) create(c taskmaster.Task) {
+func (s *server) create(c *taskmaster.Task) {
 	for k, v := range c.Labels {
 		key := labelKey(k, v)
 		if s.labels[key] == nil {
@@ -112,7 +112,7 @@ func (s *server) create(c taskmaster.Task) {
 	if s.groups[c.Group] == nil {
 		s.groups[c.Group] = skip.New(uint(10))
 	}
-	s.groups[c.Group].Insert(skipNode{*c.NotBefore, c.Id})
+	s.groups[c.Group].Insert(&skipNode{c.NotBefore, c.Id})
 }
 
 func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*taskmaster.UpdateResponse, error) {
@@ -163,7 +163,7 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 			c.NotBefore = timestamppb.Now()
 		}
 
-		s.create(*c)
+		s.create(c)
 	}
 	return &taskmaster.UpdateResponse{CreatedIds: res}, nil
 }
@@ -199,24 +199,24 @@ func (s *server) query(in *taskmaster.QueryRequest, now *timestamppb.Timestamp) 
 		return nil, 0, status.Errorf(codes.NotFound, "empty group %q", in.Group)
 	}
 
-	it := sk.Iter(skipNode{})
+	it := sk.Iter(&skipNode{})
 	v := it.Value()
 	if v == nil {
 		return nil, 0, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
 	}
-	if v.Compare(skipNode{ts: *now}) > 0 {
-		n := v.(skipNode)
+	if v.Compare(&skipNode{ts: now}) > 0 {
+		n := v.(*skipNode)
 		ts := n.ts.AsTime()
 		now := now.AsTime()
 		return nil, ts.Sub(now), nil
 	}
 
-	id := v.(skipNode).id
+	id := v.(*skipNode).id
 	t := s.tasks[id]
 
 	if in.OwnFor != nil {
 		d := in.OwnFor.AsDuration()
-		nt := t
+		nt := t.Clone()
 		tp := timestamppb.New(time.Now().Add(d))
 		nt.NotBefore = tp
 
@@ -227,7 +227,7 @@ func (s *server) query(in *taskmaster.QueryRequest, now *timestamppb.Timestamp) 
 		t = nt
 	}
 
-	return &taskmaster.QueryResponse{Task: &t}, 0, nil
+	return &taskmaster.QueryResponse{Task: t}, 0, nil
 }
 
 func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskmaster.DebugResponse, error) {
