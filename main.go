@@ -200,18 +200,17 @@ func (s *server) query(in *taskmaster.QueryRequest, now *timestamppb.Timestamp) 
 	}
 
 	it := sk.Iter(&skipNode{})
-	v := it.Value()
+	v := it.Value().(*skipNode)
 	if v == nil {
 		return nil, 0, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
 	}
 	if v.Compare(&skipNode{ts: now}) > 0 {
-		n := v.(*skipNode)
-		ts := n.ts.AsTime()
+		ts := v.ts.AsTime()
 		now := now.AsTime()
 		return nil, ts.Sub(now), nil
 	}
 
-	id := v.(*skipNode).id
+	id := v.id
 	t := s.tasks[id]
 
 	if in.OwnFor != nil {
