@@ -38,16 +38,23 @@ func setupTestGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
 	return grpcServer, lis
 }
 
-func TestConnect(t *testing.T) {
+func createTestClient(t *testing.T) taskmaster.TaskmasterClient {
 	_, lis := setupTestGRPCServer(t)
 	clientConn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		t.Fatalf("Failed to dial server: %v", err)
 	}
-	t.Cleanup(func() { clientConn.Close() })
 
+	t.Cleanup(func() { clientConn.Close() })
 	client := taskmaster.NewTaskmasterClient(clientConn)
-	_, err = client.Debug(context.Background(), &taskmaster.DebugRequest{})
+
+	return client
+}
+
+func TestConnect(t *testing.T) {
+	client := createTestClient(t)
+
+	_, err := client.Debug(context.Background(), &taskmaster.DebugRequest{})
 	if err != nil {
 		t.Errorf("Failed to call Debug method: %v", err)
 	}
