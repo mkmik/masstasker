@@ -9,10 +9,10 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
 
 service Taskmaster {
-  rpc Update (UpdateRequest) returns (UpdateResponse);
-  rpc Query (QueryRequest) returns (QueryResponse);
+  rpc Update(UpdateRequest) returns (UpdateResponse);
+  rpc Query(QueryRequest) returns (QueryResponse);
 
-  rpc Debug (DebugRequest) returns (DebugResponse);
+  rpc Debug(DebugRequest) returns (DebugResponse);
 }
 
 message UpdateRequest {
@@ -21,9 +21,7 @@ message UpdateRequest {
   repeated uint64 predicates = 3;
 }
 
-message UpdateResponse {
-  repeated uint64 created_ids = 1;
-}
+message UpdateResponse { repeated uint64 created_ids = 1; }
 
 message Task {
   uint64 id = 1;
@@ -40,9 +38,7 @@ message TaskRef {
   }
 }
 
-message LabelSelector {
-  map<string, string> labels = 1;
-}
+message LabelSelector { map<string, string> labels = 1; }
 
 message QueryRequest {
   string group = 1;
@@ -51,15 +47,11 @@ message QueryRequest {
   bool wait = 5;
 }
 
-message QueryResponse {
-  Task task = 1;
-}
+message QueryResponse { Task task = 1; }
 
 ///
 
 message DebugRequest {}
-message DebugResponse {}
+message DebugResponse { repeated Task tasks = 1; }
 
-message Test {
-  string foo = 1;
-}
+message Test { string foo = 1; }

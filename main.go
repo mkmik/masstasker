@@ -229,10 +229,12 @@ func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskm
 	s.Lock()
 	defer s.Unlock()
 
+	var tasks []*taskmaster.Task
 	for _, t := range s.tasks {
+		tasks = append(tasks, t)
 		log.Printf("%v", t)
 	}
-	return &taskmaster.DebugResponse{}, nil
+	return &taskmaster.DebugResponse{Tasks: tasks}, nil
 }
 
 func (flags *CLI) Run(*Context) error {
