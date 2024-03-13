@@ -228,7 +228,6 @@ func (s *server) query(in *taskmaster.QueryRequest, nowpb *timestamppb.Timestamp
 func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskmaster.DebugResponse, error) {
 	s.Lock()
 	defer s.Unlock()
-	log.Printf("debug:")
 
 	for _, t := range s.tasks {
 		log.Printf("%v", t)
