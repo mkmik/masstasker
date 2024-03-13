@@ -158,4 +158,19 @@ func TestSimpleWorkflow(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
+	// and if we use that task ID as precondition it will fail
+	_, err = client.Update(ctx, &taskmaster.UpdateRequest{
+		Created: []*taskmaster.Task{
+			{
+				Group: testGroup,
+				Data: must(anypb.New(&taskmaster.Test{
+					Foo: "impossible task",
+				}))(t),
+			},
+		},
+		Predicates: []uint64{res.Task.Id},
+	})
+	if got, want := status.Code(err), codes.FailedPrecondition; got != want {
+		t.Fatalf("Query returned unexpected error code: got %v, want %v", got, want)
+	}
 }
