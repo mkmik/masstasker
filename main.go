@@ -236,6 +236,7 @@ func mainE(flags Flags) error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
+	grpc.EnableTracing = true
 	s := grpc.NewServer()
 	taskmaster.RegisterTaskmasterServer(s, newServer())
 	reflection.Register(s)
