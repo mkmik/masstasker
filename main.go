@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"net/http"
+
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
 	taskmaster "github.com/mkmik/taskmaster/proto"
@@ -20,13 +22,15 @@ import (
 )
 
 type Flags struct {
-	ListenRPC string
+	ListenHTTP string
+	ListenRPC  string
 }
 
 func (f *Flags) Bind(fs *flag.FlagSet) {
 	if fs == nil {
 		fs = flag.CommandLine
 	}
+	fs.StringVar(&f.ListenHTTP, "listen-http", ":8080", "HTTP listen address")
 	fs.StringVar(&f.ListenRPC, "listen-rpc", ":50053", "RPC listen address")
 }
 
@@ -240,6 +244,13 @@ func mainE(flags Flags) error {
 	s := grpc.NewServer()
 	taskmaster.RegisterTaskmasterServer(s, newServer())
 	reflection.Register(s)
+
+	go func() {
+		log.Printf("HTTP server listening on %s", flags.ListenHTTP)
+		if err := http.ListenAndServe(flags.ListenHTTP, nil); err != nil {
+			log.Fatalf("HTTP server failed: %v", err)
+		}
+	}()
 
 	log.Printf("serving on %s", flags.ListenRPC)
 	if err := s.Serve(lis); err != nil {
