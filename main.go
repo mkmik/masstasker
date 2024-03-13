@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -13,6 +13,7 @@ import (
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
+	"github.com/alecthomas/kong"
 	taskmaster "github.com/mkmik/taskmaster/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -21,17 +22,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type Flags struct {
-	ListenHTTP string
-	ListenRPC  string
+// set by goreleaser
+var version = "(devel)"
+
+type Context struct {
+	*CLI
 }
 
-func (f *Flags) Bind(fs *flag.FlagSet) {
-	if fs == nil {
-		fs = flag.CommandLine
-	}
-	fs.StringVar(&f.ListenHTTP, "listen-http", ":8080", "HTTP listen address")
-	fs.StringVar(&f.ListenRPC, "listen-rpc", ":50053", "RPC listen address")
+type CLI struct {
+	ListenHTTP string `name:"listen-http" default:":8080"`
+	ListenRPC  string `name:"listen-rpc" default:":50053"`
+
+	Version kong.VersionFlag `name:"version" help:"Print version information and quit"`
 }
 
 func labelKey(key, value string) string {
@@ -234,7 +236,7 @@ func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskm
 	return &taskmaster.DebugResponse{}, nil
 }
 
-func mainE(flags Flags) error {
+func (flags *CLI) Run(*Context) error {
 	lis, err := net.Listen("tcp", flags.ListenRPC)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
@@ -259,12 +261,25 @@ func mainE(flags Flags) error {
 	return nil
 }
 
-func main() {
-	var flags Flags
-	flags.Bind(nil)
-	flag.Parse()
-
-	if err := mainE(flags); err != nil {
-		log.Fatal(err)
+func getVersion() string {
+	if bi, ok := debug.ReadBuildInfo(); ok {
+		if v := bi.Main.Version; v != "" && v != "(devel)" {
+			return v
+		}
 	}
+	// otherwise fallback to the version set by goreleaser
+	return version
+}
+
+func main() {
+	var cli CLI
+	ctx := kong.Parse(&cli,
+		kong.Description(`Taskmaster`),
+		kong.UsageOnError(),
+		kong.Vars{"version": getVersion()},
+		kong.ConfigureHelp(kong.HelpOptions{Compact: true, Summary: true}),
+	)
+
+	err := ctx.Run(&Context{CLI: &cli})
+	ctx.FatalIfErrorf(err)
 }
