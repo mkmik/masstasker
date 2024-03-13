@@ -35,7 +35,7 @@ func labelKey(key, value string) string {
 }
 
 type skipNode struct {
-	ts *timestamppb.Timestamp
+	ts time.Time
 	id uint64
 }
 
@@ -44,18 +44,8 @@ func (a *skipNode) Compare(b skipcommon.Comparator) int {
 	ta := a.ts
 	tb := b.(*skipNode).ts
 
-	aSecs, bSecs := ta.Seconds, tb.Seconds
-	if aSecs > bSecs {
-		return 1
-	} else if aSecs < bSecs {
-		return -1
-	}
-
-	aNanos, bNanos := ta.Nanos, tb.Nanos
-	if aNanos > bNanos {
-		return 1
-	} else if aNanos < bNanos {
-		return -1
+	if c := ta.Compare(tb); c != 0 {
+		return c
 	}
 
 	aId, bId := a.id, b.(*skipNode).id
@@ -95,7 +85,7 @@ func (s *server) delete(i uint64) {
 		delete(s.labels[key], i)
 	}
 
-	s.groups[t.Group].Delete(&skipNode{t.NotBefore, t.Id})
+	s.groups[t.Group].Delete(&skipNode{t.NotBefore.AsTime(), t.Id})
 	delete(s.tasks, i)
 }
 
@@ -112,7 +102,7 @@ func (s *server) create(c *taskmaster.Task) {
 	if s.groups[c.Group] == nil {
 		s.groups[c.Group] = skip.New(uint(10))
 	}
-	s.groups[c.Group].Insert(&skipNode{c.NotBefore, c.Id})
+	s.groups[c.Group].Insert(&skipNode{c.NotBefore.AsTime(), c.Id})
 }
 
 func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*taskmaster.UpdateResponse, error) {
@@ -189,7 +179,7 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 	}
 }
 
-func (s *server) query(in *taskmaster.QueryRequest, now *timestamppb.Timestamp) (*taskmaster.QueryResponse, time.Duration, error) {
+func (s *server) query(in *taskmaster.QueryRequest, nowpb *timestamppb.Timestamp) (*taskmaster.QueryResponse, time.Duration, error) {
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Received: %v", in)
@@ -204,9 +194,9 @@ func (s *server) query(in *taskmaster.QueryRequest, now *timestamppb.Timestamp) 
 	if v == nil {
 		return nil, 0, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
 	}
+	now := nowpb.AsTime()
 	if v.Compare(&skipNode{ts: now}) > 0 {
-		ts := v.ts.AsTime()
-		now := now.AsTime()
+		ts := v.ts
 		return nil, ts.Sub(now), nil
 	}
 
