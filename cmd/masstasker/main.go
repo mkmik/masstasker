@@ -8,10 +8,10 @@ import (
 	"runtime/debug"
 
 	"github.com/alecthomas/kong"
-	taskmaster "mkm.pub/masstasker/pkg/proto"
-	"mkm.pub/masstasker/pkg/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	taskmaster "mkm.pub/masstasker/pkg/proto"
+	"mkm.pub/masstasker/pkg/server"
 )
 
 // set by goreleaser
@@ -46,7 +46,7 @@ func (flags *CLI) Run(*Context) error {
 
 	grpc.EnableTracing = true
 	s := grpc.NewServer()
-	taskmaster.RegisterTaskmasterServer(s, server.New())
+	taskmaster.RegisterMassTaskerServer(s, server.New())
 	reflection.Register(s)
 
 	go func() {

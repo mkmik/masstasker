@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package taskmaster;
+package masstasker;
 
-option go_package = "mkm.pub/masstasker/pkg/proto;taskmaster";
+option go_package = "mkm.pub/masstasker/pkg/proto;masstasker";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
 
-service Taskmaster {
+service MassTasker {
   rpc Update(UpdateRequest) returns (UpdateResponse);
   rpc Query(QueryRequest) returns (QueryResponse);
 

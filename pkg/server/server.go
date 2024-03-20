@@ -9,10 +9,10 @@ import (
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
-	taskmaster "mkm.pub/masstasker/pkg/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	masstasker "mkm.pub/masstasker/pkg/proto"
 )
 
 func labelKey(key, value string) string {
@@ -43,13 +43,13 @@ func (a *skipNode) Compare(b skipcommon.Comparator) int {
 	return 0
 }
 
-// server is used to implement taskmaster.Taskmaster
+// server is used to implement masstasker.Taskmaster
 type server struct {
-	taskmaster.UnimplementedTaskmasterServer
+	masstasker.UnimplementedMassTaskerServer
 
 	sync.Mutex
 	next   uint64
-	tasks  map[uint64]*taskmaster.Task
+	tasks  map[uint64]*masstasker.Task
 	labels map[string]map[uint64]struct{}
 	groups map[string]*skip.SkipList
 }
@@ -57,7 +57,7 @@ type server struct {
 func New() *server {
 	return &server{
 		next:   1,
-		tasks:  map[uint64]*taskmaster.Task{},
+		tasks:  map[uint64]*masstasker.Task{},
 		labels: map[string]map[uint64]struct{}{},
 		groups: map[string]*skip.SkipList{},
 	}
@@ -74,7 +74,7 @@ func (s *server) delete(i uint64) {
 	delete(s.tasks, i)
 }
 
-func (s *server) create(c *taskmaster.Task) {
+func (s *server) create(c *masstasker.Task) {
 	for k, v := range c.Labels {
 		key := labelKey(k, v)
 		if s.labels[key] == nil {
@@ -90,7 +90,7 @@ func (s *server) create(c *taskmaster.Task) {
 	s.groups[c.Group].Insert(&skipNode{c.NotBefore.AsTime(), c.Id})
 }
 
-func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*taskmaster.UpdateResponse, error) {
+func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*masstasker.UpdateResponse, error) {
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Update: %v", in)
@@ -104,12 +104,12 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 	var del []uint64
 	for _, d := range in.Deleted {
 		switch d := d.Sel.(type) {
-		case *taskmaster.TaskRef_Id:
+		case *masstasker.TaskRef_Id:
 			if _, exists := s.tasks[d.Id]; !exists {
 				return nil, fmt.Errorf("task %d doesn't exist", d)
 			}
 			del = append(del, d.Id)
-		case *taskmaster.TaskRef_Selector:
+		case *masstasker.TaskRef_Selector:
 			for k, v := range d.Selector.Labels {
 				key := labelKey(k, v)
 				for i := range s.labels[key] {
@@ -140,10 +140,10 @@ func (s *server) Update(ctx context.Context, in *taskmaster.UpdateRequest) (*tas
 
 		s.create(c)
 	}
-	return &taskmaster.UpdateResponse{CreatedIds: res}, nil
+	return &masstasker.UpdateResponse{CreatedIds: res}, nil
 }
 
-func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskmaster.QueryResponse, error) {
+func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masstasker.QueryResponse, error) {
 	for {
 		now := in.Now
 		if now == nil {
@@ -164,7 +164,7 @@ func (s *server) Query(ctx context.Context, in *taskmaster.QueryRequest) (*taskm
 	}
 }
 
-func (s *server) query(in *taskmaster.QueryRequest, nowpb *timestamppb.Timestamp) (*taskmaster.QueryResponse, time.Duration, error) {
+func (s *server) query(in *masstasker.QueryRequest, nowpb *timestamppb.Timestamp) (*masstasker.QueryResponse, time.Duration, error) {
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Received: %v", in)
@@ -201,17 +201,17 @@ func (s *server) query(in *taskmaster.QueryRequest, nowpb *timestamppb.Timestamp
 		t = nt
 	}
 
-	return &taskmaster.QueryResponse{Task: t}, 0, nil
+	return &masstasker.QueryResponse{Task: t}, 0, nil
 }
 
-func (s *server) Debug(ctx context.Context, in *taskmaster.DebugRequest) (*taskmaster.DebugResponse, error) {
+func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masstasker.DebugResponse, error) {
 	s.Lock()
 	defer s.Unlock()
 
-	var tasks []*taskmaster.Task
+	var tasks []*masstasker.Task
 	for _, t := range s.tasks {
 		tasks = append(tasks, t)
 		log.Printf("%v", t)
 	}
-	return &taskmaster.DebugResponse{Tasks: tasks}, nil
+	return &masstasker.DebugResponse{Tasks: tasks}, nil
 }

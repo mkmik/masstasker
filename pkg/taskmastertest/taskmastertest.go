@@ -5,10 +5,10 @@ import (
 	"net"
 	"testing"
 
-	taskmaster "mkm.pub/masstasker/pkg/proto"
-	"mkm.pub/masstasker/pkg/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	masstasker "mkm.pub/masstasker/pkg/proto"
+	"mkm.pub/masstasker/pkg/server"
 )
 
 func SetupTestGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
@@ -19,7 +19,7 @@ func SetupTestGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
 
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	taskmaster.RegisterTaskmasterServer(grpcServer, server.New())
+	masstasker.RegisterMassTaskerServer(grpcServer, server.New())
 
 	// Register cleanup to stop the server and close the listener when the test finishes
 	t.Cleanup(func() {
@@ -38,7 +38,7 @@ func SetupTestGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
 	return grpcServer, lis
 }
 
-func New(t *testing.T) taskmaster.TaskmasterClient {
+func New(t *testing.T) masstasker.MassTaskerClient {
 	_, lis := SetupTestGRPCServer(t)
 	clientConn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
@@ -46,7 +46,7 @@ func New(t *testing.T) taskmaster.TaskmasterClient {
 	}
 
 	t.Cleanup(func() { clientConn.Close() })
-	client := taskmaster.NewTaskmasterClient(clientConn)
+	client := masstasker.NewMassTaskerClient(clientConn)
 
 	return client
 }

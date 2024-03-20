@@ -4,7 +4,7 @@
 // - protoc             v4.25.3
 // source: taskmaster.proto
 
-package taskmaster
+package masstasker
 
 import (
 	context "context"
@@ -19,163 +19,163 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Taskmaster_Update_FullMethodName = "/taskmaster.Taskmaster/Update"
-	Taskmaster_Query_FullMethodName  = "/taskmaster.Taskmaster/Query"
-	Taskmaster_Debug_FullMethodName  = "/taskmaster.Taskmaster/Debug"
+	MassTasker_Update_FullMethodName = "/masstasker.MassTasker/Update"
+	MassTasker_Query_FullMethodName  = "/masstasker.MassTasker/Query"
+	MassTasker_Debug_FullMethodName  = "/masstasker.MassTasker/Debug"
 )
 
-// TaskmasterClient is the client API for Taskmaster service.
+// MassTaskerClient is the client API for MassTasker service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TaskmasterClient interface {
+type MassTaskerClient interface {
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 	Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error)
 	Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error)
 }
 
-type taskmasterClient struct {
+type massTaskerClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewTaskmasterClient(cc grpc.ClientConnInterface) TaskmasterClient {
-	return &taskmasterClient{cc}
+func NewMassTaskerClient(cc grpc.ClientConnInterface) MassTaskerClient {
+	return &massTaskerClient{cc}
 }
 
-func (c *taskmasterClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+func (c *massTaskerClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
 	out := new(UpdateResponse)
-	err := c.cc.Invoke(ctx, Taskmaster_Update_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MassTasker_Update_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *taskmasterClient) Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error) {
+func (c *massTaskerClient) Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error) {
 	out := new(QueryResponse)
-	err := c.cc.Invoke(ctx, Taskmaster_Query_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MassTasker_Query_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *taskmasterClient) Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error) {
+func (c *massTaskerClient) Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error) {
 	out := new(DebugResponse)
-	err := c.cc.Invoke(ctx, Taskmaster_Debug_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MassTasker_Debug_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// TaskmasterServer is the server API for Taskmaster service.
-// All implementations must embed UnimplementedTaskmasterServer
+// MassTaskerServer is the server API for MassTasker service.
+// All implementations must embed UnimplementedMassTaskerServer
 // for forward compatibility
-type TaskmasterServer interface {
+type MassTaskerServer interface {
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
 	Query(context.Context, *QueryRequest) (*QueryResponse, error)
 	Debug(context.Context, *DebugRequest) (*DebugResponse, error)
-	mustEmbedUnimplementedTaskmasterServer()
+	mustEmbedUnimplementedMassTaskerServer()
 }
 
-// UnimplementedTaskmasterServer must be embedded to have forward compatible implementations.
-type UnimplementedTaskmasterServer struct {
+// UnimplementedMassTaskerServer must be embedded to have forward compatible implementations.
+type UnimplementedMassTaskerServer struct {
 }
 
-func (UnimplementedTaskmasterServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+func (UnimplementedMassTaskerServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedTaskmasterServer) Query(context.Context, *QueryRequest) (*QueryResponse, error) {
+func (UnimplementedMassTaskerServer) Query(context.Context, *QueryRequest) (*QueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Query not implemented")
 }
-func (UnimplementedTaskmasterServer) Debug(context.Context, *DebugRequest) (*DebugResponse, error) {
+func (UnimplementedMassTaskerServer) Debug(context.Context, *DebugRequest) (*DebugResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Debug not implemented")
 }
-func (UnimplementedTaskmasterServer) mustEmbedUnimplementedTaskmasterServer() {}
+func (UnimplementedMassTaskerServer) mustEmbedUnimplementedMassTaskerServer() {}
 
-// UnsafeTaskmasterServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TaskmasterServer will
+// UnsafeMassTaskerServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MassTaskerServer will
 // result in compilation errors.
-type UnsafeTaskmasterServer interface {
-	mustEmbedUnimplementedTaskmasterServer()
+type UnsafeMassTaskerServer interface {
+	mustEmbedUnimplementedMassTaskerServer()
 }
 
-func RegisterTaskmasterServer(s grpc.ServiceRegistrar, srv TaskmasterServer) {
-	s.RegisterService(&Taskmaster_ServiceDesc, srv)
+func RegisterMassTaskerServer(s grpc.ServiceRegistrar, srv MassTaskerServer) {
+	s.RegisterService(&MassTasker_ServiceDesc, srv)
 }
 
-func _Taskmaster_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MassTasker_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TaskmasterServer).Update(ctx, in)
+		return srv.(MassTaskerServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Taskmaster_Update_FullMethodName,
+		FullMethod: MassTasker_Update_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskmasterServer).Update(ctx, req.(*UpdateRequest))
+		return srv.(MassTaskerServer).Update(ctx, req.(*UpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Taskmaster_Query_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MassTasker_Query_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TaskmasterServer).Query(ctx, in)
+		return srv.(MassTaskerServer).Query(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Taskmaster_Query_FullMethodName,
+		FullMethod: MassTasker_Query_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskmasterServer).Query(ctx, req.(*QueryRequest))
+		return srv.(MassTaskerServer).Query(ctx, req.(*QueryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Taskmaster_Debug_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MassTasker_Debug_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DebugRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TaskmasterServer).Debug(ctx, in)
+		return srv.(MassTaskerServer).Debug(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Taskmaster_Debug_FullMethodName,
+		FullMethod: MassTasker_Debug_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskmasterServer).Debug(ctx, req.(*DebugRequest))
+		return srv.(MassTaskerServer).Debug(ctx, req.(*DebugRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Taskmaster_ServiceDesc is the grpc.ServiceDesc for Taskmaster service.
+// MassTasker_ServiceDesc is the grpc.ServiceDesc for MassTasker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Taskmaster_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "taskmaster.Taskmaster",
-	HandlerType: (*TaskmasterServer)(nil),
+var MassTasker_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "masstasker.MassTasker",
+	HandlerType: (*MassTaskerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Update",
-			Handler:    _Taskmaster_Update_Handler,
+			Handler:    _MassTasker_Update_Handler,
 		},
 		{
 			MethodName: "Query",
-			Handler:    _Taskmaster_Query_Handler,
+			Handler:    _MassTasker_Query_Handler,
 		},
 		{
 			MethodName: "Debug",
-			Handler:    _Taskmaster_Debug_Handler,
+			Handler:    _MassTasker_Debug_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

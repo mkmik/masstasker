@@ -1,4 +1,4 @@
-package taskmaster
+package masstasker
 
 import "google.golang.org/protobuf/proto"
 
