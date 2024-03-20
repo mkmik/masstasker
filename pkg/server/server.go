@@ -9,7 +9,7 @@ import (
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
-	taskmaster "github.com/mkmik/taskmaster/pkg/proto"
+	taskmaster "mkm.pub/masstasker/pkg/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"

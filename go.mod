@@ -1,4 +1,4 @@
-module github.com/mkmik/taskmaster
+module mkm.pub/masstasker
 
 go 1.22
 

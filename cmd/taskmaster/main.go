@@ -8,8 +8,8 @@ import (
 	"runtime/debug"
 
 	"github.com/alecthomas/kong"
-	taskmaster "github.com/mkmik/taskmaster/pkg/proto"
-	"github.com/mkmik/taskmaster/pkg/server"
+	taskmaster "mkm.pub/masstasker/pkg/proto"
+	"mkm.pub/masstasker/pkg/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

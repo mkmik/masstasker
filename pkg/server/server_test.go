@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	taskmaster "github.com/mkmik/taskmaster/pkg/proto"
-	"github.com/mkmik/taskmaster/pkg/taskmastertest"
+	taskmaster "mkm.pub/masstasker/pkg/proto"
+	"mkm.pub/masstasker/pkg/taskmastertest"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
