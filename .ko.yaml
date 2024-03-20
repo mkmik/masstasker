@@ -1,0 +1,5 @@
+defaultBaseImage: cgr.dev/chainguard/bash:latest
+builds:
+  - id: masstasker
+    dir: .
+    main: .
