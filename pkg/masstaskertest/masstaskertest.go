@@ -11,7 +11,7 @@ import (
 	"mkm.pub/masstasker/pkg/server"
 )
 
-func SetupTestGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
+func SetupTestGRPCServer(t testing.TB) (*grpc.Server, net.Listener) {
 	lis, err := net.Listen("tcp", ":0") // listen on a random free port
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
@@ -38,15 +38,16 @@ func SetupTestGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
 	return grpcServer, lis
 }
 
-func New(t *testing.T) masstasker.MassTaskerClient {
+func New(t testing.TB) masstasker.MassTaskerClient {
+	return masstasker.NewMassTaskerClient(NewClientConn(t))
+}
+
+func NewClientConn(t testing.TB) *grpc.ClientConn {
 	_, lis := SetupTestGRPCServer(t)
 	clientConn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		t.Fatalf("Failed to dial server: %v", err)
 	}
-
 	t.Cleanup(func() { clientConn.Close() })
-	client := masstasker.NewMassTaskerClient(clientConn)
-
-	return client
+	return clientConn
 }

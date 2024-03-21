@@ -106,7 +106,7 @@ func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*mas
 		switch d := d.Sel.(type) {
 		case *masstasker.TaskRef_Id:
 			if _, exists := s.tasks[d.Id]; !exists {
-				return nil, fmt.Errorf("task %d doesn't exist", d)
+				return nil, status.Errorf(codes.NotFound, "task %d doesn't exist", d)
 			}
 			del = append(del, d.Id)
 		case *masstasker.TaskRef_Selector:
