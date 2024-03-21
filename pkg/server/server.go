@@ -43,7 +43,7 @@ func (a *skipNode) Compare(b skipcommon.Comparator) int {
 	return 0
 }
 
-// server is used to implement masstasker.Taskmaster
+// server is used to implement masstasker.MassTasker
 type server struct {
 	masstasker.UnimplementedMassTaskerServer
 

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.25.3
-// source: taskmaster.proto
+// source: masstasker.proto
 
 package masstasker
 
@@ -179,5 +179,5 @@ var MassTasker_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "taskmaster.proto",
+	Metadata: "masstasker.proto",
 }

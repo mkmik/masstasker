@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v4.25.3
-// source: taskmaster.proto
+// source: masstasker.proto
 
 package masstasker
 
@@ -36,7 +36,7 @@ type UpdateRequest struct {
 func (x *UpdateRequest) Reset() {
 	*x = UpdateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[0]
+		mi := &file_masstasker_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -49,7 +49,7 @@ func (x *UpdateRequest) String() string {
 func (*UpdateRequest) ProtoMessage() {}
 
 func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[0]
+	mi := &file_masstasker_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +62,7 @@ func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRequest) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{0}
+	return file_masstasker_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *UpdateRequest) GetCreated() []*Task {
@@ -97,7 +97,7 @@ type UpdateResponse struct {
 func (x *UpdateResponse) Reset() {
 	*x = UpdateResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[1]
+		mi := &file_masstasker_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -110,7 +110,7 @@ func (x *UpdateResponse) String() string {
 func (*UpdateResponse) ProtoMessage() {}
 
 func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[1]
+	mi := &file_masstasker_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -123,7 +123,7 @@ func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResponse.ProtoReflect.Descriptor instead.
 func (*UpdateResponse) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{1}
+	return file_masstasker_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *UpdateResponse) GetCreatedIds() []uint64 {
@@ -148,7 +148,7 @@ type Task struct {
 func (x *Task) Reset() {
 	*x = Task{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[2]
+		mi := &file_masstasker_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -161,7 +161,7 @@ func (x *Task) String() string {
 func (*Task) ProtoMessage() {}
 
 func (x *Task) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[2]
+	mi := &file_masstasker_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +174,7 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task.ProtoReflect.Descriptor instead.
 func (*Task) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{2}
+	return file_masstasker_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Task) GetId() uint64 {
@@ -227,7 +227,7 @@ type TaskRef struct {
 func (x *TaskRef) Reset() {
 	*x = TaskRef{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[3]
+		mi := &file_masstasker_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -240,7 +240,7 @@ func (x *TaskRef) String() string {
 func (*TaskRef) ProtoMessage() {}
 
 func (x *TaskRef) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[3]
+	mi := &file_masstasker_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -253,7 +253,7 @@ func (x *TaskRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskRef.ProtoReflect.Descriptor instead.
 func (*TaskRef) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{3}
+	return file_masstasker_proto_rawDescGZIP(), []int{3}
 }
 
 func (m *TaskRef) GetSel() isTaskRef_Sel {
@@ -304,7 +304,7 @@ type LabelSelector struct {
 func (x *LabelSelector) Reset() {
 	*x = LabelSelector{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[4]
+		mi := &file_masstasker_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -317,7 +317,7 @@ func (x *LabelSelector) String() string {
 func (*LabelSelector) ProtoMessage() {}
 
 func (x *LabelSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[4]
+	mi := &file_masstasker_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -330,7 +330,7 @@ func (x *LabelSelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LabelSelector.ProtoReflect.Descriptor instead.
 func (*LabelSelector) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{4}
+	return file_masstasker_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LabelSelector) GetLabels() map[string]string {
@@ -354,7 +354,7 @@ type QueryRequest struct {
 func (x *QueryRequest) Reset() {
 	*x = QueryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[5]
+		mi := &file_masstasker_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -367,7 +367,7 @@ func (x *QueryRequest) String() string {
 func (*QueryRequest) ProtoMessage() {}
 
 func (x *QueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[5]
+	mi := &file_masstasker_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +380,7 @@ func (x *QueryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryRequest.ProtoReflect.Descriptor instead.
 func (*QueryRequest) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{5}
+	return file_masstasker_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *QueryRequest) GetGroup() string {
@@ -422,7 +422,7 @@ type QueryResponse struct {
 func (x *QueryResponse) Reset() {
 	*x = QueryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[6]
+		mi := &file_masstasker_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -435,7 +435,7 @@ func (x *QueryResponse) String() string {
 func (*QueryResponse) ProtoMessage() {}
 
 func (x *QueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[6]
+	mi := &file_masstasker_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +448,7 @@ func (x *QueryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryResponse.ProtoReflect.Descriptor instead.
 func (*QueryResponse) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{6}
+	return file_masstasker_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *QueryResponse) GetTask() *Task {
@@ -467,7 +467,7 @@ type DebugRequest struct {
 func (x *DebugRequest) Reset() {
 	*x = DebugRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[7]
+		mi := &file_masstasker_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -480,7 +480,7 @@ func (x *DebugRequest) String() string {
 func (*DebugRequest) ProtoMessage() {}
 
 func (x *DebugRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[7]
+	mi := &file_masstasker_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +493,7 @@ func (x *DebugRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DebugRequest.ProtoReflect.Descriptor instead.
 func (*DebugRequest) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{7}
+	return file_masstasker_proto_rawDescGZIP(), []int{7}
 }
 
 type DebugResponse struct {
@@ -507,7 +507,7 @@ type DebugResponse struct {
 func (x *DebugResponse) Reset() {
 	*x = DebugResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[8]
+		mi := &file_masstasker_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -520,7 +520,7 @@ func (x *DebugResponse) String() string {
 func (*DebugResponse) ProtoMessage() {}
 
 func (x *DebugResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[8]
+	mi := &file_masstasker_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -533,7 +533,7 @@ func (x *DebugResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DebugResponse.ProtoReflect.Descriptor instead.
 func (*DebugResponse) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{8}
+	return file_masstasker_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DebugResponse) GetTasks() []*Task {
@@ -554,7 +554,7 @@ type Test struct {
 func (x *Test) Reset() {
 	*x = Test{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_taskmaster_proto_msgTypes[9]
+		mi := &file_masstasker_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -567,7 +567,7 @@ func (x *Test) String() string {
 func (*Test) ProtoMessage() {}
 
 func (x *Test) ProtoReflect() protoreflect.Message {
-	mi := &file_taskmaster_proto_msgTypes[9]
+	mi := &file_masstasker_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -580,7 +580,7 @@ func (x *Test) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Test.ProtoReflect.Descriptor instead.
 func (*Test) Descriptor() ([]byte, []int) {
-	return file_taskmaster_proto_rawDescGZIP(), []int{9}
+	return file_masstasker_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Test) GetFoo() string {
@@ -590,10 +590,10 @@ func (x *Test) GetFoo() string {
 	return ""
 }
 
-var File_taskmaster_proto protoreflect.FileDescriptor
+var File_masstasker_proto protoreflect.FileDescriptor
 
-var file_taskmaster_proto_rawDesc = []byte{
-	0x0a, 0x10, 0x74, 0x61, 0x73, 0x6b, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x2e, 0x70, 0x72, 0x6f,
+var file_masstasker_proto_rawDesc = []byte{
+	0x0a, 0x10, 0x6d, 0x61, 0x73, 0x73, 0x74, 0x61, 0x73, 0x6b, 0x65, 0x72, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x12, 0x0a, 0x6d, 0x61, 0x73, 0x73, 0x74, 0x61, 0x73, 0x6b, 0x65, 0x72, 0x1a, 0x1e,
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f,
 	0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1f,
@@ -682,19 +682,19 @@ var file_taskmaster_proto_rawDesc = []byte{
 }
 
 var (
-	file_taskmaster_proto_rawDescOnce sync.Once
-	file_taskmaster_proto_rawDescData = file_taskmaster_proto_rawDesc
+	file_masstasker_proto_rawDescOnce sync.Once
+	file_masstasker_proto_rawDescData = file_masstasker_proto_rawDesc
 )
 
-func file_taskmaster_proto_rawDescGZIP() []byte {
-	file_taskmaster_proto_rawDescOnce.Do(func() {
-		file_taskmaster_proto_rawDescData = protoimpl.X.CompressGZIP(file_taskmaster_proto_rawDescData)
+func file_masstasker_proto_rawDescGZIP() []byte {
+	file_masstasker_proto_rawDescOnce.Do(func() {
+		file_masstasker_proto_rawDescData = protoimpl.X.CompressGZIP(file_masstasker_proto_rawDescData)
 	})
-	return file_taskmaster_proto_rawDescData
+	return file_masstasker_proto_rawDescData
 }
 
-var file_taskmaster_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_taskmaster_proto_goTypes = []interface{}{
+var file_masstasker_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_masstasker_proto_goTypes = []interface{}{
 	(*UpdateRequest)(nil),         // 0: masstasker.UpdateRequest
 	(*UpdateResponse)(nil),        // 1: masstasker.UpdateResponse
 	(*Task)(nil),                  // 2: masstasker.Task
@@ -711,7 +711,7 @@ var file_taskmaster_proto_goTypes = []interface{}{
 	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
 	(*durationpb.Duration)(nil),   // 14: google.protobuf.Duration
 }
-var file_taskmaster_proto_depIdxs = []int32{
+var file_masstasker_proto_depIdxs = []int32{
 	2,  // 0: masstasker.UpdateRequest.created:type_name -> masstasker.Task
 	3,  // 1: masstasker.UpdateRequest.deleted:type_name -> masstasker.TaskRef
 	12, // 2: masstasker.Task.data:type_name -> google.protobuf.Any
@@ -736,13 +736,13 @@ var file_taskmaster_proto_depIdxs = []int32{
 	0,  // [0:11] is the sub-list for field type_name
 }
 
-func init() { file_taskmaster_proto_init() }
-func file_taskmaster_proto_init() {
-	if File_taskmaster_proto != nil {
+func init() { file_masstasker_proto_init() }
+func file_masstasker_proto_init() {
+	if File_masstasker_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_taskmaster_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRequest); i {
 			case 0:
 				return &v.state
@@ -754,7 +754,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateResponse); i {
 			case 0:
 				return &v.state
@@ -766,7 +766,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Task); i {
 			case 0:
 				return &v.state
@@ -778,7 +778,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TaskRef); i {
 			case 0:
 				return &v.state
@@ -790,7 +790,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*LabelSelector); i {
 			case 0:
 				return &v.state
@@ -802,7 +802,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueryRequest); i {
 			case 0:
 				return &v.state
@@ -814,7 +814,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueryResponse); i {
 			case 0:
 				return &v.state
@@ -826,7 +826,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DebugRequest); i {
 			case 0:
 				return &v.state
@@ -838,7 +838,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DebugResponse); i {
 			case 0:
 				return &v.state
@@ -850,7 +850,7 @@ func file_taskmaster_proto_init() {
 				return nil
 			}
 		}
-		file_taskmaster_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_masstasker_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Test); i {
 			case 0:
 				return &v.state
@@ -863,7 +863,7 @@ func file_taskmaster_proto_init() {
 			}
 		}
 	}
-	file_taskmaster_proto_msgTypes[3].OneofWrappers = []interface{}{
+	file_masstasker_proto_msgTypes[3].OneofWrappers = []interface{}{
 		(*TaskRef_Id)(nil),
 		(*TaskRef_Selector)(nil),
 	}
@@ -871,18 +871,18 @@ func file_taskmaster_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_taskmaster_proto_rawDesc,
+			RawDescriptor: file_masstasker_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_taskmaster_proto_goTypes,
-		DependencyIndexes: file_taskmaster_proto_depIdxs,
-		MessageInfos:      file_taskmaster_proto_msgTypes,
+		GoTypes:           file_masstasker_proto_goTypes,
+		DependencyIndexes: file_masstasker_proto_depIdxs,
+		MessageInfos:      file_masstasker_proto_msgTypes,
 	}.Build()
-	File_taskmaster_proto = out.File
-	file_taskmaster_proto_rawDesc = nil
-	file_taskmaster_proto_goTypes = nil
-	file_taskmaster_proto_depIdxs = nil
+	File_masstasker_proto = out.File
+	file_masstasker_proto_rawDesc = nil
+	file_masstasker_proto_goTypes = nil
+	file_masstasker_proto_depIdxs = nil
 }

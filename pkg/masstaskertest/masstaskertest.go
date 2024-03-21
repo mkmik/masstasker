@@ -1,4 +1,4 @@
-package taskmastertest
+package masstaskertest
 
 import (
 	"log"

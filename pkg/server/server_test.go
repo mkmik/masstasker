@@ -5,18 +5,18 @@ import (
 	"testing"
 	"time"
 
-	taskmaster "mkm.pub/masstasker/pkg/proto"
-	"mkm.pub/masstasker/pkg/taskmastertest"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
+	masstasker "mkm.pub/masstasker/pkg/proto"
+	"mkm.pub/masstasker/pkg/masstaskertest"
 )
 
 func TestConnect(t *testing.T) {
-	client := taskmastertest.New(t)
+	client := masstaskertest.New(t)
 
-	_, err := client.Debug(context.Background(), &taskmaster.DebugRequest{})
+	_, err := client.Debug(context.Background(), &masstasker.DebugRequest{})
 	if err != nil {
 		t.Errorf("Failed to call Debug method: %v", err)
 	}
@@ -38,14 +38,14 @@ func TestSimpleWorkflow(t *testing.T) {
 		testID    uint64 = 1
 	)
 
-	client := taskmastertest.New(t)
+	client := masstaskertest.New(t)
 	ctx := context.Background()
 
-	_, err := client.Update(ctx, &taskmaster.UpdateRequest{
-		Created: []*taskmaster.Task{
+	_, err := client.Update(ctx, &masstasker.UpdateRequest{
+		Created: []*masstasker.Task{
 			{
 				Group: testGroup,
-				Data: must(anypb.New(&taskmaster.Test{
+				Data: must(anypb.New(&masstasker.Test{
 					Foo: "demo",
 				}))(t),
 			},
@@ -55,7 +55,7 @@ func TestSimpleWorkflow(t *testing.T) {
 		t.Errorf("Failed to call Debug method: %v", err)
 	}
 
-	dbg, err := client.Debug(ctx, &taskmaster.DebugRequest{})
+	dbg, err := client.Debug(ctx, &masstasker.DebugRequest{})
 	if err != nil {
 		t.Fatalf("Failed to call Debug method: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestSimpleWorkflow(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
-	res, err := client.Query(ctx, &taskmaster.QueryRequest{
+	res, err := client.Query(ctx, &masstasker.QueryRequest{
 		Group:  testGroup,
 		OwnFor: durationpb.New(1 * time.Hour),
 		Wait:   false,
@@ -85,7 +85,7 @@ func TestSimpleWorkflow(t *testing.T) {
 		t.Fatalf("got: %v but should be different", got)
 	}
 
-	_, err = client.Query(ctx, &taskmaster.QueryRequest{
+	_, err = client.Query(ctx, &masstasker.QueryRequest{
 		Group:  testGroup,
 		OwnFor: durationpb.New(1 * time.Hour),
 		Wait:   false,
@@ -97,9 +97,9 @@ func TestSimpleWorkflow(t *testing.T) {
 		t.Fatalf("Query returned unexpected error code: got %v, want %v", got, want)
 	}
 
-	_, err = client.Update(ctx, &taskmaster.UpdateRequest{
-		Deleted: []*taskmaster.TaskRef{{
-			Sel: &taskmaster.TaskRef_Id{Id: res.Task.Id},
+	_, err = client.Update(ctx, &masstasker.UpdateRequest{
+		Deleted: []*masstasker.TaskRef{{
+			Sel: &masstasker.TaskRef_Id{Id: res.Task.Id},
 		}},
 	})
 	if err != nil {
@@ -107,7 +107,7 @@ func TestSimpleWorkflow(t *testing.T) {
 	}
 
 	// now we should have exactly zero tasks
-	dbg, err = client.Debug(ctx, &taskmaster.DebugRequest{})
+	dbg, err = client.Debug(ctx, &masstasker.DebugRequest{})
 	if err != nil {
 		t.Fatalf("Failed to call Debug method: %v", err)
 	}
@@ -116,11 +116,11 @@ func TestSimpleWorkflow(t *testing.T) {
 	}
 
 	// and if we use that task ID as precondition it will fail
-	_, err = client.Update(ctx, &taskmaster.UpdateRequest{
-		Created: []*taskmaster.Task{
+	_, err = client.Update(ctx, &masstasker.UpdateRequest{
+		Created: []*masstasker.Task{
 			{
 				Group: testGroup,
-				Data: must(anypb.New(&taskmaster.Test{
+				Data: must(anypb.New(&masstasker.Test{
 					Foo: "impossible task",
 				}))(t),
 			},

@@ -10,7 +10,7 @@ import (
 	"github.com/alecthomas/kong"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	taskmaster "mkm.pub/masstasker/pkg/proto"
+	masstasker "mkm.pub/masstasker/pkg/proto"
 	"mkm.pub/masstasker/pkg/server"
 )
 
@@ -46,7 +46,7 @@ func (flags *CLI) Run(*Context) error {
 
 	grpc.EnableTracing = true
 	s := grpc.NewServer()
-	taskmaster.RegisterMassTaskerServer(s, server.New())
+	masstasker.RegisterMassTaskerServer(s, server.New())
 	reflection.Register(s)
 
 	go func() {
@@ -66,7 +66,7 @@ func (flags *CLI) Run(*Context) error {
 func main() {
 	var cli CLI
 	ctx := kong.Parse(&cli,
-		kong.Description(`Taskmaster`),
+		kong.Description(`MassTasker`),
 		kong.UsageOnError(),
 		kong.Vars{"version": getVersion()},
 		kong.ConfigureHelp(kong.HelpOptions{Compact: true, Summary: true}),
