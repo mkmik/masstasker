@@ -2,8 +2,11 @@ package masstasker
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	masstasker "mkm.pub/masstasker/pkg/proto"
 )
 
@@ -74,6 +77,29 @@ func (c *Client) ComplexUpdate(ctx context.Context, create []*masstasker.Task, d
 		create[i].Id = id
 	}
 	return nil
+}
+
+type QueryOpt func(*masstasker.QueryRequest)
+
+func NonBlocking(req *masstasker.QueryRequest) {
+	req.Wait = false
+}
+
+func (c *Client) Query(ctx context.Context, group string, ownFor time.Duration, opts ...QueryOpt) (*masstasker.Task, error) {
+	req := &masstasker.QueryRequest{
+		Group:  group,
+		Now:    timestamppb.Now(),
+		OwnFor: durationpb.New(ownFor),
+		Wait:   true,
+	}
+	for _, o := range opts {
+		o(req)
+	}
+	res, err := c.RPC.Query(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res.Task, nil
 }
 
 func taskRefs(tasks []*masstasker.Task) []*masstasker.TaskRef {

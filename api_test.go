@@ -3,6 +3,7 @@ package masstasker_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -61,5 +62,42 @@ func TestUpdate(t *testing.T) {
 	}
 	if got, want := t1.GetId(), uint64(2); got != want {
 		t.Errorf("got: %d, want: %d", got, want)
+	}
+}
+
+func TestQuery(t *testing.T) {
+	const (
+		testGroup1 = "testGroup1"
+		testGroup2 = "testGroup2"
+	)
+	client := testClient(t)
+	t1 := &masstasker.Task{Group: testGroup1}
+	t2 := &masstasker.Task{Group: testGroup2}
+	if err := client.Create(context.Background(), t1, t2); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := t1.GetId(), uint64(1); got != want {
+		t.Errorf("got: %d, want: %d", got, want)
+	}
+	if got, want := t2.GetId(), uint64(2); got != want {
+		t.Errorf("got: %d, want: %d", got, want)
+	}
+
+	oldT1ID := t1.Id
+	work, err := client.Query(context.Background(), testGroup1, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := work.Id, oldT1ID; got != want {
+		t.Errorf("got: %d, want: %d", got, want)
+	}
+
+	work, err = client.Query(context.Background(), testGroup1, 1*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// owning means changing the task, changing the task means replacing the task.
+	if got, dontWant := work.Id, oldT1ID; got == dontWant {
+		t.Errorf("got: %d, dontWant: %d", got, dontWant)
 	}
 }

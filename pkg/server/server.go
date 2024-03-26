@@ -188,7 +188,7 @@ func (s *server) query(in *masstasker.QueryRequest, nowpb *timestamppb.Timestamp
 	id := v.id
 	t := s.tasks[id]
 
-	if in.OwnFor != nil {
+	if in.GetOwnFor().AsDuration() > 0 {
 		d := in.OwnFor.AsDuration()
 		nt := t.Clone()
 		tp := timestamppb.New(time.Now().Add(d))
