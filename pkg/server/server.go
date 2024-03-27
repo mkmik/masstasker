@@ -144,16 +144,20 @@ func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*mas
 }
 
 func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masstasker.QueryResponse, error) {
+	now := in.Now.AsTime()
+	if in.Now == nil {
+		now = time.Now()
+	}
+	start := time.Now()
+
 	for {
-		now := in.Now
-		if now == nil {
-			now = timestamppb.Now()
-		}
+		now = now.Add(time.Since(start))
 		res, d, err := s.query(in, now)
 		if err != nil {
 			return nil, err
 		}
 		if d > 0 {
+			log.Printf("Found owned task in group:%q, sleeping %v", in.Group, d)
 			if !in.Wait {
 				return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", now)
 			}
@@ -164,7 +168,7 @@ func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masst
 	}
 }
 
-func (s *server) query(in *masstasker.QueryRequest, nowpb *timestamppb.Timestamp) (*masstasker.QueryResponse, time.Duration, error) {
+func (s *server) query(in *masstasker.QueryRequest, now time.Time) (*masstasker.QueryResponse, time.Duration, error) {
 	s.Lock()
 	defer s.Unlock()
 	log.Printf("Received: %v", in)
@@ -179,7 +183,6 @@ func (s *server) query(in *masstasker.QueryRequest, nowpb *timestamppb.Timestamp
 	if v == nil {
 		return nil, 0, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
 	}
-	now := nowpb.AsTime()
 	if v.Compare(&skipNode{ts: now}) > 0 {
 		ts := v.ts
 		return nil, ts.Sub(now), nil
