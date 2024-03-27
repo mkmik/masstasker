@@ -179,10 +179,10 @@ func (s *server) query(in *masstasker.QueryRequest, now time.Time) (*masstasker.
 	}
 
 	it := sk.Iter(&skipNode{})
-	v := it.Value().(*skipNode)
-	if v == nil {
+	if it.Value() == nil {
 		return nil, 0, status.Errorf(codes.NotFound, "cannot find any value for group %q", in.Group)
 	}
+	v := it.Value().(*skipNode)
 	if v.Compare(&skipNode{ts: now}) > 0 {
 		ts := v.ts
 		return nil, ts.Sub(now), nil
