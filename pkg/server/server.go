@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"sync"
 	"time"
 
@@ -106,10 +107,15 @@ func (s *server) create(c *masstasker.Task) {
 	s.groups[c.Group].Insert(&skipNode{c.NotBefore.AsTime(), c.Id})
 }
 
+func sample[T any](s []T) []T {
+	l := slices.Min([]int{1, len(s)})
+	return s[:l]
+}
+
 func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*masstasker.UpdateResponse, error) {
 	s.Lock()
 	defer s.Unlock()
-	log.Printf("Update: created: %d, deleted: %d, predicates: %d. Sample: created: %v", len(in.Created), len(in.Deleted), len(in.Predicates), in.Created[:1])
+	log.Printf("Update: created: %d, deleted: %d, predicates: %d. Sample: created: %v", len(in.Created), len(in.Deleted), len(in.Predicates), sample(in.Created))
 
 	for _, id := range in.Predicates {
 		if _, found := s.tasks[id]; !found {
