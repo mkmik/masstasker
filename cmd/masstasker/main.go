@@ -8,6 +8,7 @@ import (
 	"runtime/debug"
 
 	"github.com/alecthomas/kong"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	masstasker "mkm.pub/masstasker/pkg/proto"
@@ -49,6 +50,7 @@ func (flags *CLI) Run(*Context) error {
 	masstasker.RegisterMassTaskerServer(s, server.New())
 	reflection.Register(s)
 
+	http.Handle("/metrics", promhttp.Handler())
 	go func() {
 		log.Printf("HTTP server listening on %s", flags.ListenHTTP)
 		if err := http.ListenAndServe(flags.ListenHTTP, nil); err != nil {

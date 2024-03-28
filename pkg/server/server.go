@@ -9,10 +9,22 @@ import (
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	masstasker "mkm.pub/masstasker/pkg/proto"
+)
+
+var (
+	numTasks = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "masstasker_num_tasks",
+			Help: "Number of tasks",
+		},
+		[]string{"group"},
+	)
 )
 
 func labelKey(key, value string) string {
@@ -65,6 +77,8 @@ func New() *server {
 
 func (s *server) delete(i uint64) {
 	t := s.tasks[i]
+	numTasks.WithLabelValues(t.Group).Dec()
+
 	for k, v := range t.Labels {
 		key := labelKey(k, v)
 		delete(s.labels[key], i)
@@ -75,6 +89,8 @@ func (s *server) delete(i uint64) {
 }
 
 func (s *server) create(c *masstasker.Task) {
+	numTasks.WithLabelValues(c.Group).Inc()
+
 	for k, v := range c.Labels {
 		key := labelKey(k, v)
 		if s.labels[key] == nil {
@@ -93,7 +109,7 @@ func (s *server) create(c *masstasker.Task) {
 func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*masstasker.UpdateResponse, error) {
 	s.Lock()
 	defer s.Unlock()
-	log.Printf("Update: %v", in)
+	log.Printf("Update: created: %d, deleted: %d, predicates: %d. Sample: created: %v", len(in.Created), len(in.Deleted), len(in.Predicates), in.Created[:1])
 
 	for _, id := range in.Predicates {
 		if _, found := s.tasks[id]; !found {
