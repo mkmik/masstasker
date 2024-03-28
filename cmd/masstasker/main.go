@@ -93,6 +93,7 @@ func main() {
 		kong.UsageOnError(),
 		kong.Vars{"version": getVersion()},
 		kong.ConfigureHelp(kong.HelpOptions{Compact: true, Summary: true}),
+		kong.DefaultEnvars("MASSTASKER"),
 	)
 
 	err := ctx.Run(&Context{CLI: &cli})
