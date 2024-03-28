@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"runtime/debug"
+	"time"
 
 	"github.com/alecthomas/kong"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -57,7 +60,7 @@ func (flags *CLI) Run(*Context) error {
 
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
-		log.Printf("HTTP server listening on %s", flags.ListenHTTP)
+		slog.Info("HTTP server listening", "addr", flags.ListenHTTP)
 		if err := http.ListenAndServe(flags.ListenHTTP, nil); err != nil {
 			log.Fatalf("HTTP server failed: %v", err)
 		}
@@ -83,10 +86,33 @@ func insertBootstrapTask(addr string, group string) {
 	if err := mt.Create(ctx, &masstasker.Task{Group: group}); err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("created bootstrap task in %q", group)
+	slog.Info("created bootstrap task", "group", group)
+}
+
+var (
+	timeFormat = "2006-01-02T15:04:05.000000000-07:00"
+)
+
+func init() {
+	location, _ := time.LoadLocation("Local")
+	if location.String() == "UTC" {
+		timeFormat = "2006-01-02T15:04:05.000000000Z"
+	}
 }
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == "time" {
+				// the timestamp in go1.22.1 is padded with zeros. The docs say it should be millisecond precision but it isn't.
+				// In any case, let's format the time the way we want
+				a.Value = slog.StringValue(a.Value.Time().Format(timeFormat))
+			}
+			return a
+		},
+	})))
+
 	var cli CLI
 	ctx := kong.Parse(&cli,
 		kong.Description(`MassTasker`),
