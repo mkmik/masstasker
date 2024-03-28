@@ -5,9 +5,15 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	masstasker "mkm.pub/masstasker/pkg/proto"
+)
+
+const (
+	emptyGroupRetryTime = 5 * time.Second
 )
 
 type Task = masstasker.Task
@@ -95,11 +101,20 @@ func (c *Client) Query(ctx context.Context, group string, ownFor time.Duration, 
 	for _, o := range opts {
 		o(req)
 	}
-	res, err := c.RPC.Query(ctx, req)
-	if err != nil {
-		return nil, err
+
+	for {
+		res, err := c.RPC.Query(ctx, req)
+		if req.Wait && status.Code(err) == codes.NotFound {
+			time.Sleep(emptyGroupRetryTime)
+			req.Now = timestamppb.Now()
+
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		return res.Task, nil
 	}
-	return res.Task, nil
 }
 
 func taskRefs(tasks []*masstasker.Task) []*masstasker.TaskRef {
