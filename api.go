@@ -85,6 +85,15 @@ func (c *Client) ComplexUpdate(ctx context.Context, create []*masstasker.Task, d
 	return nil
 }
 
+// Move is just a "sugar" for a) update the Group field in every task b) issue an Update to to move the task to another group.
+// Sometimes it makes the intent of the client code clearer.
+func (c *Client) Move(ctx context.Context, targetGroup string, tasks ...*masstasker.Task) error {
+	for _, t := range tasks {
+		t.Group = targetGroup
+	}
+	return c.Update(ctx, tasks...)
+}
+
 type QueryOpt func(*masstasker.QueryRequest)
 
 func NonBlocking(req *masstasker.QueryRequest) {
