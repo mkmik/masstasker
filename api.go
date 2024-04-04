@@ -113,7 +113,7 @@ func (c *Client) Query(ctx context.Context, group string, ownFor time.Duration, 
 
 	for {
 		res, err := c.RPC.Query(ctx, req)
-		if req.Wait && status.Code(err) == codes.NotFound {
+		if code := status.Code(err); req.Wait && (code == codes.NotFound || code == codes.DeadlineExceeded) {
 			time.Sleep(emptyGroupRetryTime)
 			req.Now = timestamppb.Now()
 
