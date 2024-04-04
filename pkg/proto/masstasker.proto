@@ -29,6 +29,10 @@ message Task {
   google.protobuf.Any data = 3;
   map<string, string> labels = 4;
   google.protobuf.Timestamp not_before = 5;
+
+  // optional error annotation, useful when moving tasks to an error queue.
+  // If you need a more structured error please encode it in the payload.
+  string error = 6;
 }
 
 message TaskRef {
