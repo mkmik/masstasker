@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"slices"
 	"sync"
 	"time"
@@ -234,9 +235,28 @@ func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masst
 	defer s.Unlock()
 
 	var tasks []*masstasker.Task
-	for _, t := range s.tasks {
-		tasks = append(tasks, t)
-		log.Printf("%v", t)
+
+	limit := uint64(math.MaxUint64)
+	if in.Limit > 0 {
+		limit = in.Limit
+	}
+	if group := in.Group; group != "" {
+		if sk := s.groups[group]; sk != nil {
+			it := sk.Iter(&skipNode{})
+			for it.Next() && limit > 0 {
+				id := it.Value().(*skipNode).id
+				tasks = append(tasks, s.tasks[id])
+				limit--
+			}
+		}
+	} else {
+		for _, t := range s.tasks {
+			if limit == 0 {
+				break
+			}
+			tasks = append(tasks, t)
+			limit--
+		}
 	}
 	return &masstasker.DebugResponse{Tasks: tasks}, nil
 }

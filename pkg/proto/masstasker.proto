@@ -55,7 +55,10 @@ message QueryResponse { Task task = 1; }
 
 ///
 
-message DebugRequest {}
+message DebugRequest {
+  string group = 1;
+  uint64 limit = 2;
+}
 message DebugResponse { repeated Task tasks = 1; }
 
 message Test { string foo = 1; }
