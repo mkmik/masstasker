@@ -116,6 +116,10 @@ func sample[T any](s []T) []T {
 func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*masstasker.UpdateResponse, error) {
 	s.Lock()
 	defer s.Unlock()
+	return s.unlockedUpdate(ctx, in)
+}
+
+func (s *server) unlockedUpdate(ctx context.Context, in *masstasker.UpdateRequest) (*masstasker.UpdateResponse, error) {
 	log.Printf("Update: created: %d, deleted: %d, predicates: %d. Sample: created: %v", len(in.Created), len(in.Deleted), len(in.Predicates), sample(in.Created))
 
 	for _, id := range in.Predicates {
@@ -124,26 +128,9 @@ func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*mas
 		}
 	}
 
-	var del []uint64
-	for _, d := range in.Deleted {
-		switch d := d.Sel.(type) {
-		case *masstasker.TaskRef_Id:
-			if _, exists := s.tasks[d.Id]; !exists {
-				return nil, status.Errorf(codes.NotFound, "task %d doesn't exist", d)
-			}
-			del = append(del, d.Id)
-		case *masstasker.TaskRef_Selector:
-			for k, v := range d.Selector.Labels {
-				key := labelKey(k, v)
-				for i := range s.labels[key] {
-					del = append(del, i)
-				}
-			}
-		case nil:
-			return nil, fmt.Errorf("one must be set")
-		default:
-			return nil, fmt.Errorf("unhandled case %T", d)
-		}
+	del, err := s.resolveTaskRef(in.Deleted)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, i := range del {
@@ -164,6 +151,39 @@ func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*mas
 		s.create(c)
 	}
 	return &masstasker.UpdateResponse{CreatedIds: res}, nil
+}
+
+func (s *server) resolveTaskRef(refs []*masstasker.TaskRef) ([]uint64, error) {
+	var ids []uint64
+	for _, r := range refs {
+		switch d := r.Sel.(type) {
+		case *masstasker.TaskRef_Id:
+			if _, exists := s.tasks[d.Id]; !exists {
+				return nil, status.Errorf(codes.NotFound, "task %d doesn't exist", d)
+			}
+			ids = append(ids, d.Id)
+		case *masstasker.TaskRef_Selector:
+			for k, v := range d.Selector.Labels {
+				key := labelKey(k, v)
+				for i := range s.labels[key] {
+					ids = append(ids, i)
+				}
+			}
+		case *masstasker.TaskRef_Group:
+			if sk := s.groups[d.Group]; sk != nil {
+				it := sk.Iter(&skipNode{})
+				for it.Next() {
+					i := it.Value().(*skipNode).id
+					ids = append(ids, i)
+				}
+			}
+		case nil:
+			return nil, fmt.Errorf("one must be set")
+		default:
+			return nil, fmt.Errorf("unhandled case %T", d)
+		}
+	}
+	return ids, nil
 }
 
 func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masstasker.QueryResponse, error) {
@@ -262,4 +282,39 @@ func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masst
 		}
 	}
 	return &masstasker.DebugResponse{Tasks: tasks, NumTasks: numTasks}, nil
+}
+
+func (s *server) BulkSet(ctx context.Context, in *masstasker.BulkSetRequest) (*masstasker.BulkSetResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
+	ids, err := s.resolveTaskRef(in.Ref)
+	if err != nil {
+		return nil, err
+	}
+
+	var tasks []*masstasker.Task
+	for _, i := range ids {
+		t := s.tasks[i]
+		tasks = append(tasks, t)
+
+		if v := in.GetPrototype().GetNotBefore(); v != nil {
+			t.NotBefore = v
+		}
+		if v := in.GetPrototype().GetGroup(); v != "" {
+			t.Group = v
+		}
+	}
+
+	res, err := s.unlockedUpdate(ctx, &masstasker.UpdateRequest{
+		Deleted: in.Ref,
+		Created: tasks,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &masstasker.BulkSetResponse{
+		NumUpdated: uint64(len(res.CreatedIds)),
+	}, nil
 }

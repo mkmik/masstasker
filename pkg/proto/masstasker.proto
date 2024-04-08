@@ -12,6 +12,7 @@ service MassTasker {
   rpc Update(UpdateRequest) returns (UpdateResponse);
   rpc Query(QueryRequest) returns (QueryResponse);
 
+  rpc BulkSet(BulkSetRequest) returns (BulkSetResponse);
   rpc Debug(DebugRequest) returns (DebugResponse);
 }
 
@@ -39,6 +40,7 @@ message TaskRef {
   oneof sel {
     uint64 id = 1;
     LabelSelector selector = 2;
+    string group = 3;
   }
 }
 
@@ -54,6 +56,14 @@ message QueryRequest {
 message QueryResponse { Task task = 1; }
 
 ///
+
+message BulkSetRequest {
+  // select which tasks we want to "update"
+  repeated TaskRef ref = 1;
+  // and copy non-zero fields in the prototype into each matching object
+  Task prototype = 2;
+}
+message BulkSetResponse { uint64 num_updated = 1; }
 
 message DebugRequest {
   string group = 1;

@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MassTasker_Update_FullMethodName = "/masstasker.MassTasker/Update"
-	MassTasker_Query_FullMethodName  = "/masstasker.MassTasker/Query"
-	MassTasker_Debug_FullMethodName  = "/masstasker.MassTasker/Debug"
+	MassTasker_Update_FullMethodName  = "/masstasker.MassTasker/Update"
+	MassTasker_Query_FullMethodName   = "/masstasker.MassTasker/Query"
+	MassTasker_BulkSet_FullMethodName = "/masstasker.MassTasker/BulkSet"
+	MassTasker_Debug_FullMethodName   = "/masstasker.MassTasker/Debug"
 )
 
 // MassTaskerClient is the client API for MassTasker service.
@@ -30,6 +31,7 @@ const (
 type MassTaskerClient interface {
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 	Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error)
+	BulkSet(ctx context.Context, in *BulkSetRequest, opts ...grpc.CallOption) (*BulkSetResponse, error)
 	Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error)
 }
 
@@ -59,6 +61,15 @@ func (c *massTaskerClient) Query(ctx context.Context, in *QueryRequest, opts ...
 	return out, nil
 }
 
+func (c *massTaskerClient) BulkSet(ctx context.Context, in *BulkSetRequest, opts ...grpc.CallOption) (*BulkSetResponse, error) {
+	out := new(BulkSetResponse)
+	err := c.cc.Invoke(ctx, MassTasker_BulkSet_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *massTaskerClient) Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error) {
 	out := new(DebugResponse)
 	err := c.cc.Invoke(ctx, MassTasker_Debug_FullMethodName, in, out, opts...)
@@ -74,6 +85,7 @@ func (c *massTaskerClient) Debug(ctx context.Context, in *DebugRequest, opts ...
 type MassTaskerServer interface {
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
 	Query(context.Context, *QueryRequest) (*QueryResponse, error)
+	BulkSet(context.Context, *BulkSetRequest) (*BulkSetResponse, error)
 	Debug(context.Context, *DebugRequest) (*DebugResponse, error)
 	mustEmbedUnimplementedMassTaskerServer()
 }
@@ -87,6 +99,9 @@ func (UnimplementedMassTaskerServer) Update(context.Context, *UpdateRequest) (*U
 }
 func (UnimplementedMassTaskerServer) Query(context.Context, *QueryRequest) (*QueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Query not implemented")
+}
+func (UnimplementedMassTaskerServer) BulkSet(context.Context, *BulkSetRequest) (*BulkSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkSet not implemented")
 }
 func (UnimplementedMassTaskerServer) Debug(context.Context, *DebugRequest) (*DebugResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Debug not implemented")
@@ -140,6 +155,24 @@ func _MassTasker_Query_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MassTasker_BulkSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MassTaskerServer).BulkSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MassTasker_BulkSet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MassTaskerServer).BulkSet(ctx, req.(*BulkSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MassTasker_Debug_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DebugRequest)
 	if err := dec(in); err != nil {
@@ -172,6 +205,10 @@ var MassTasker_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Query",
 			Handler:    _MassTasker_Query_Handler,
+		},
+		{
+			MethodName: "BulkSet",
+			Handler:    _MassTasker_BulkSet_Handler,
 		},
 		{
 			MethodName: "Debug",
