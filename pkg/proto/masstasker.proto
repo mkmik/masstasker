@@ -59,6 +59,10 @@ message DebugRequest {
   string group = 1;
   uint64 limit = 2;
 }
-message DebugResponse { repeated Task tasks = 1; }
+
+message DebugResponse {
+  repeated Task tasks = 1;
+  uint64 num_tasks = 2;
+}
 
 message Test { string foo = 1; }

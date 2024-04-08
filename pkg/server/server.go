@@ -235,6 +235,7 @@ func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masst
 	defer s.Unlock()
 
 	var tasks []*masstasker.Task
+	var numTasks uint64
 
 	limit := uint64(math.MaxUint64)
 	if in.Limit > 0 {
@@ -243,6 +244,7 @@ func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masst
 	if group := in.Group; group != "" {
 		if sk := s.groups[group]; sk != nil {
 			it := sk.Iter(&skipNode{})
+			numTasks = sk.Len()
 			for it.Next() && limit > 0 {
 				id := it.Value().(*skipNode).id
 				tasks = append(tasks, s.tasks[id])
@@ -250,6 +252,7 @@ func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masst
 			}
 		}
 	} else {
+		numTasks = uint64(len(s.tasks))
 		for _, t := range s.tasks {
 			if limit == 0 {
 				break
@@ -258,5 +261,5 @@ func (s *server) Debug(ctx context.Context, in *masstasker.DebugRequest) (*masst
 			limit--
 		}
 	}
-	return &masstasker.DebugResponse{Tasks: tasks}, nil
+	return &masstasker.DebugResponse{Tasks: tasks, NumTasks: numTasks}, nil
 }
