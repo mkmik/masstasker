@@ -9,7 +9,20 @@ import (
 	"google.golang.org/grpc/status"
 	"mkm.pub/masstasker"
 	"mkm.pub/masstasker/pkg/masstaskertest"
+	masstaskerpb "mkm.pub/masstasker/pkg/proto"
 )
+
+type Test = masstaskerpb.Test
+
+func must[T any](v T, err error) func(tb testing.TB) T {
+	return func(t testing.TB) T {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+}
 
 func testClient(t testing.TB) *masstasker.Client {
 	return masstasker.Connect(masstaskertest.NewClientConn(t))
@@ -69,10 +82,13 @@ func TestQuery(t *testing.T) {
 	const (
 		testGroup1 = "testGroup1"
 		testGroup2 = "testGroup2"
+
+		foo1 = "foo1"
+		foo2 = "foo2"
 	)
 	client := testClient(t)
-	t1 := &masstasker.Task{Group: testGroup1}
-	t2 := &masstasker.Task{Group: testGroup2}
+	t1 := must(masstasker.NewTask(testGroup1, &Test{Foo: foo1}))(t)
+	t2 := must(masstasker.NewTask(testGroup2, &Test{Foo: foo2}))(t)
 	if err := client.Create(context.Background(), t1, t2); err != nil {
 		t.Fatal(err)
 	}

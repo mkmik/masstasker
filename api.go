@@ -7,6 +7,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	masstasker "mkm.pub/masstasker/pkg/proto"
@@ -142,4 +144,23 @@ func taskIDs(tasks []*masstasker.Task) []uint64 {
 		ids = append(ids, t.Id)
 	}
 	return ids
+}
+
+func UnmarshalData[T proto.Message](task *masstasker.Task) (T, error) {
+	var data T
+	err := task.UnmarshalTo(data)
+	return data, err
+}
+
+func NewTask(group string, data proto.Message) (*masstasker.Task, error) {
+	task := &masstasker.Task{Group: group}
+	if data != nil {
+		if task.Data == nil {
+			task.Data = &anypb.Any{}
+		}
+		if err := task.MarshalFrom(data); err != nil {
+			return nil, err
+		}
+	}
+	return task, nil
 }
