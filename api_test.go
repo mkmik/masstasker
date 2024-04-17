@@ -2,6 +2,7 @@ package masstasker_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -115,5 +116,41 @@ func TestQuery(t *testing.T) {
 	// owning means changing the task, changing the task means replacing the task.
 	if got, dontWant := work.Id, oldT1ID; got == dontWant {
 		t.Errorf("got: %d, dontWant: %d", got, dontWant)
+	}
+}
+
+func TestSavedError(t *testing.T) {
+	testCases := []struct {
+		err   error
+		saved bool
+	}{
+		{
+			fmt.Errorf("some error"),
+			false,
+		},
+		{
+			nil,
+			false,
+		},
+		{
+			masstasker.NewSavedError(fmt.Errorf("some error")),
+			true,
+		},
+		{
+			fmt.Errorf("wrapped %w", masstasker.NewSavedError(fmt.Errorf("some error"))),
+			true,
+		},
+		{
+			fmt.Errorf("wrapped %w", fmt.Errorf("again %w", masstasker.NewSavedError(fmt.Errorf("some error")))),
+			true,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			if got, want := masstasker.IsSavedError(tc.err), tc.saved; got != want {
+				t.Errorf("got: %v, want: %v", got, want)
+			}
+		})
 	}
 }

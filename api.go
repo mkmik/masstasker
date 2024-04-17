@@ -2,6 +2,7 @@ package masstasker
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"google.golang.org/grpc"
@@ -157,4 +158,27 @@ func NewTask(group string, data proto.Message) (*masstasker.Task, error) {
 		}
 	}
 	return task, nil
+}
+
+func NewSavedError(err error) error {
+	return SavedError{err: err}
+}
+
+// A SavedError wraps an error and can be used to signal that an error is not meant to be retried indefinitely
+// but instead the task should be moved to an error group.
+type SavedError struct {
+	err error
+}
+
+func (r SavedError) Error() string {
+	return r.Unwrap().Error()
+}
+
+func (r SavedError) Unwrap() error {
+	return r.err
+}
+
+func IsSavedError(err error) bool {
+	var serr SavedError
+	return errors.As(err, &serr)
 }
