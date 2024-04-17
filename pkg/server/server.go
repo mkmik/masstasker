@@ -11,6 +11,7 @@ import (
 
 	skipcommon "github.com/Workiva/go-datastructures/common"
 	"github.com/Workiva/go-datastructures/slice/skip"
+	"github.com/jonboulle/clockwork"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/grpc/codes"
@@ -66,14 +67,22 @@ type server struct {
 	tasks  map[uint64]*masstasker.Task
 	labels map[string]map[uint64]struct{}
 	groups map[string]*skip.SkipList
+
+	clock clockwork.Clock
 }
 
 func New() *server {
+	return NewWithContext(context.Background())
+}
+
+func NewWithContext(ctx context.Context) *server {
+	clock := clockwork.FromContext(ctx)
 	return &server{
 		next:   1,
 		tasks:  map[uint64]*masstasker.Task{},
 		labels: map[string]map[uint64]struct{}{},
 		groups: map[string]*skip.SkipList{},
+		clock:  clock,
 	}
 }
 
@@ -145,7 +154,7 @@ func (s *server) unlockedUpdate(ctx context.Context, in *masstasker.UpdateReques
 		res[i] = c.Id
 
 		if c.NotBefore == nil {
-			c.NotBefore = timestamppb.Now()
+			c.NotBefore = timestamppb.New(s.clock.Now())
 		}
 
 		s.create(c)
@@ -189,12 +198,11 @@ func (s *server) resolveTaskRef(refs []*masstasker.TaskRef) ([]uint64, error) {
 func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masstasker.QueryResponse, error) {
 	now := in.Now.AsTime()
 	if in.Now == nil {
-		now = time.Now()
+		now = s.clock.Now()
 	}
-	start := time.Now()
+	start := s.clock.Now()
 
 	for {
-		now = now.Add(time.Since(start))
 		res, d, err := s.query(in, now)
 		if err != nil {
 			return nil, err
@@ -204,10 +212,11 @@ func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masst
 			if !in.Wait {
 				return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", now)
 			}
-			time.Sleep(d)
+			s.clock.Sleep(d)
 		} else {
 			return res, nil
 		}
+		now = now.Add(s.clock.Since(start))
 	}
 }
 
@@ -237,7 +246,7 @@ func (s *server) query(in *masstasker.QueryRequest, now time.Time) (*masstasker.
 	if in.GetOwnFor().AsDuration() > 0 {
 		d := in.OwnFor.AsDuration()
 		nt := t.Clone()
-		tp := timestamppb.New(time.Now().Add(d))
+		tp := timestamppb.New(now.Add(d))
 		nt.NotBefore = tp
 
 		s.delete(nt.Id)
