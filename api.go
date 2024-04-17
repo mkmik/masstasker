@@ -146,12 +146,6 @@ func taskIDs(tasks []*masstasker.Task) []uint64 {
 	return ids
 }
 
-func UnmarshalData[T proto.Message](task *masstasker.Task) (T, error) {
-	var data T
-	err := task.UnmarshalTo(data)
-	return data, err
-}
-
 func NewTask(group string, data proto.Message) (*masstasker.Task, error) {
 	task := &masstasker.Task{Group: group}
 	if data != nil {
