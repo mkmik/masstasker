@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -14,10 +12,6 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/reflection"
-	mapi "mkm.pub/masstasker"
-	masstasker "mkm.pub/masstasker/pkg/proto"
 	"mkm.pub/masstasker/pkg/server"
 )
 
@@ -48,15 +42,7 @@ func getVersion() string {
 }
 
 func (flags *CLI) Run(*Context) error {
-	lis, err := net.Listen("tcp", flags.ListenRPC)
-	if err != nil {
-		return fmt.Errorf("failed to listen: %w", err)
-	}
-
 	grpc.EnableTracing = true
-	s := grpc.NewServer()
-	masstasker.RegisterMassTaskerServer(s, server.New())
-	reflection.Register(s)
 
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
@@ -66,27 +52,8 @@ func (flags *CLI) Run(*Context) error {
 		}
 	}()
 
-	if flags.BootstrapTaskGroup != "" {
-		go insertBootstrapTask(flags.ListenRPC, flags.BootstrapTaskGroup)
-	}
-
 	log.Printf("serving on %s", flags.ListenRPC)
-	if err := s.Serve(lis); err != nil {
-		return fmt.Errorf("failed to serve: %w", err)
-	}
-	return nil
-}
-
-func insertBootstrapTask(addr string, group string) {
-	ctx := context.Background()
-	mt, err := mapi.Dial(ctx, addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := mt.Create(ctx, &masstasker.Task{Group: group}); err != nil {
-		log.Fatal(err)
-	}
-	slog.Info("created bootstrap task", "group", group)
+	return server.ListenAndServe(context.Background(), flags.ListenRPC, server.WithBootstrapTaskGroup(flags.BootstrapTaskGroup))
 }
 
 var (
