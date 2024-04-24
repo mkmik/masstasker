@@ -17,9 +17,18 @@ func SetupTestGRPCServer(t testing.TB) (*grpc.Server, net.Listener) {
 }
 
 func SetupTestGRPCServerWithContext(t testing.TB, ctx context.Context) (*grpc.Server, net.Listener) {
+	s, l, c, err := NewGRPCServer(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(c)
+	return s, l
+}
+
+func NewGRPCServer(ctx context.Context) (*grpc.Server, net.Listener, func(), error) {
 	lis, err := net.Listen("tcp", ":0") // listen on a random free port
 	if err != nil {
-		t.Fatalf("failed to listen: %v", err)
+		return nil, nil, func() {}, err
 	}
 
 	var opts []grpc.ServerOption
@@ -27,20 +36,19 @@ func SetupTestGRPCServerWithContext(t testing.TB, ctx context.Context) (*grpc.Se
 	masstasker.RegisterMassTaskerServer(grpcServer, server.NewWithContext(ctx))
 
 	// Register cleanup to stop the server and close the listener when the test finishes
-	t.Cleanup(func() {
+	cleanup := func() {
 		grpcServer.Stop()
 		lis.Close()
-	})
+	}
 
 	// Start serving gRPC server in a separate goroutine
 	go func() {
-		//		t.Logf("Listening on %v", lis)
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
 	}()
 
-	return grpcServer, lis
+	return grpcServer, lis, cleanup, nil
 }
 
 func New(t testing.TB) masstasker.MassTaskerClient {
