@@ -12,6 +12,7 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/binarylog"
 	"mkm.pub/masstasker/pkg/server"
 )
 
@@ -43,6 +44,11 @@ func getVersion() string {
 
 func (flags *CLI) Run(*Context) error {
 	grpc.EnableTracing = true
+	sink, err := binarylog.NewTempFileSink()
+	if err != nil {
+		return err
+	}
+	binarylog.SetSink(sink)
 
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
