@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	masstasker "mkm.pub/masstasker/pkg/proto"
 	"mkm.pub/masstasker/pkg/masstaskertest"
+	masstasker "mkm.pub/masstasker/pkg/proto"
 )
 
 func TestConnect(t *testing.T) {
