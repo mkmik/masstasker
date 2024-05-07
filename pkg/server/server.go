@@ -48,10 +48,10 @@ func (a *skipNode) Compare(b skipcommon.Comparator) int {
 		return c
 	}
 
-	aId, bId := a.id, b.(*skipNode).id
-	if aId > bId {
+	aID, bID := a.id, b.(*skipNode).id
+	if aID > bID {
 		return 1
-	} else if aId < bId {
+	} else if aID < bID {
 		return -1
 	}
 
