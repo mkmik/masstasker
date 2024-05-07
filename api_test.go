@@ -9,7 +9,6 @@ import (
 	"github.com/jonboulle/clockwork"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/encoding/protojson"
 	"mkm.pub/masstasker"
 	"mkm.pub/masstasker/pkg/masstaskertest"
 	masstaskerpb "mkm.pub/masstasker/pkg/proto"
@@ -226,6 +225,7 @@ func TestClockwork(t *testing.T) {
 	}
 }
 
+/*
 func dump(t testing.TB, ctx context.Context, step int, mt *masstasker.Client) {
 	clock := clockwork.FromContext(ctx)
 	if true {
@@ -239,6 +239,7 @@ func dump(t testing.TB, ctx context.Context, step int, mt *masstasker.Client) {
 		t.Logf("step %d (%s): %s", step, clock.Now().UTC(), protojson.Format(res))
 	}
 }
+*/
 
 func TestRunWithLease(t *testing.T) {
 	const (

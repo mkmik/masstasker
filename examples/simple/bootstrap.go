@@ -30,7 +30,7 @@ func (c *Context) processBootstrap(ctx context.Context) error {
 	}
 
 	slog.Info("Creating tasks", "n", len(tasks))
-	if err := c.mt.ComplexUpdate(ctx, tasks, []*masstasker.Task{bootstrap}, nil); err != nil {
+	if err := c.mt.Do(ctx, masstasker.Delete(bootstrap), masstasker.Create(tasks...)); err != nil {
 		return err
 	}
 	return nil
