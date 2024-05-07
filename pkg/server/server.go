@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"math"
 	"slices"
 	"sync"
@@ -129,7 +129,8 @@ func (s *server) Update(ctx context.Context, in *masstasker.UpdateRequest) (*mas
 }
 
 func (s *server) unlockedUpdate(ctx context.Context, in *masstasker.UpdateRequest) (*masstasker.UpdateResponse, error) {
-	log.Printf("Update: created: %d, deleted: %d, predicates: %d. Sample: created: %v", len(in.Created), len(in.Deleted), len(in.Predicates), sample(in.Created))
+	slog.Info("update", "created", len(in.Created), "deleted", len(in.Deleted), "predicates", len(in.Predicates),
+		"sample created", sample(in.Created))
 
 	for _, id := range in.Predicates {
 		if _, found := s.tasks[id]; !found {
@@ -200,7 +201,6 @@ func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masst
 	if in.Now == nil {
 		now = s.clock.Now()
 	}
-	start := s.clock.Now()
 
 	for {
 		res, d, err := s.query(in, now)
@@ -208,22 +208,23 @@ func (s *server) Query(ctx context.Context, in *masstasker.QueryRequest) (*masst
 			return nil, err
 		}
 		if d > 0 {
-			log.Printf("Found owned task in group:%q, sleeping %v", in.Group, d)
+			slog.Info("found owned task", "group", in.Group, "sleeping", d)
 			if !in.Wait {
 				return nil, status.Errorf(codes.NotFound, "cannot find any value visible at %q", now)
 			}
+			start := s.clock.Now()
 			s.clock.Sleep(d)
+			now = now.Add(s.clock.Since(start))
 		} else {
 			return res, nil
 		}
-		now = now.Add(s.clock.Since(start))
 	}
 }
 
 func (s *server) query(in *masstasker.QueryRequest, now time.Time) (*masstasker.QueryResponse, time.Duration, error) {
 	s.Lock()
 	defer s.Unlock()
-	log.Printf("Received: %v", in)
+	slog.Info("query", "group", in.Group, "ownFor", in.OwnFor.AsDuration())
 
 	sk := s.groups[in.Group]
 	if sk == nil {
