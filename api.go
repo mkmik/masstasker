@@ -64,19 +64,28 @@ func Connect(conn *grpc.ClientConn) *Client {
 // Create creates the given tasks.
 // The IDs are allocated upon task creation and are not known until the server responds.
 // This method updates the task IDs in the arguments with the IDs returned by the server.
+//
+// Deprecated: use [Client.Do] with [Create]
 func (c *Client) Create(ctx context.Context, tasks ...*masstasker.Task) error {
-	return c.ComplexUpdate(ctx, tasks, nil, nil)
+	return c.complexUpdate(ctx, tasks, nil, nil)
 }
 
+// Deprecated: use [Client.Do] with [Update]
 func (c *Client) Update(ctx context.Context, tasks ...*masstasker.Task) error {
-	return c.ComplexUpdate(ctx, tasks, tasks, nil)
+	return c.complexUpdate(ctx, tasks, tasks, nil)
 }
 
+// Deprecated: use [Client.Do] with [Delete]
 func (c *Client) Delete(ctx context.Context, tasks ...*masstasker.Task) error {
-	return c.ComplexUpdate(ctx, nil, tasks, nil)
+	return c.complexUpdate(ctx, nil, tasks, nil)
 }
 
+// Deprecated: use [Client.Do]
 func (c *Client) ComplexUpdate(ctx context.Context, create []*masstasker.Task, delete []*masstasker.Task, predicates []*masstasker.Task) error {
+	return c.complexUpdate(ctx, create, delete, predicates)
+}
+
+func (c *Client) complexUpdate(ctx context.Context, create []*masstasker.Task, delete []*masstasker.Task, predicates []*masstasker.Task) error {
 	clock := clockwork.FromContext(ctx)
 
 	for _, c := range create {
@@ -101,6 +110,8 @@ func (c *Client) ComplexUpdate(ctx context.Context, create []*masstasker.Task, d
 
 // Move is just a "sugar" for a) update the Group field in every task b) issue an Update to to move the task to another group.
 // Sometimes it makes the intent of the client code clearer.
+//
+// Deprecated: use [Client.Do] with [Move]
 func (c *Client) Move(ctx context.Context, targetGroup string, tasks ...*masstasker.Task) error {
 	for _, t := range tasks {
 		t.Group = targetGroup
@@ -110,6 +121,8 @@ func (c *Client) Move(ctx context.Context, targetGroup string, tasks ...*masstas
 
 // Disown is just a "sugar" for a) reset the NotBefore field in every task b) issue an Update
 // Sometimes it makes the intent of the client code clearer.
+//
+// Deprecated: use [Client.Do] with [Disown]
 func (c *Client) Disown(ctx context.Context, tasks ...*masstasker.Task) error {
 	for _, t := range tasks {
 		t.NotBefore = nil
@@ -119,6 +132,8 @@ func (c *Client) Disown(ctx context.Context, tasks ...*masstasker.Task) error {
 
 // Reown is just a "sugar" for a) set the NotBefore field in every task by now+ownFor b) issue an Update
 // Sometimes it makes the intent of the client code clearer.
+//
+// Deprecated: use [Client.Do] with [Reown]
 func (c *Client) Reown(ctx context.Context, ownFor time.Duration, tasks ...*masstasker.Task) error {
 	clock := clockwork.FromContext(ctx)
 	for _, t := range tasks {
@@ -236,7 +251,7 @@ func WithOwnFor(d time.Duration) LeaseOption {
 }
 
 // RunWithLease runs fn while in the background "renewing a lease" on the task by periodically updating bumping the NotBefore
-func (mt *Client) RunWithLease(ctx context.Context, task *masstasker.Task, fn func(context.Context, *masstasker.Task) error, opts ...LeaseOption) error {
+func (c *Client) RunWithLease(ctx context.Context, task *masstasker.Task, fn func(context.Context, *masstasker.Task) error, opts ...LeaseOption) error {
 	clock := clockwork.FromContext(ctx)
 
 	opt := leaseOptions{
@@ -259,7 +274,7 @@ func (mt *Client) RunWithLease(ctx context.Context, task *masstasker.Task, fn fu
 		case err := <-errCh:
 			return err
 		case <-clock.After(opt.heartbeat):
-			if err := mt.Reown(ctx, opt.ownFor, task); err != nil {
+			if err := c.Reown(ctx, opt.ownFor, task); err != nil {
 				return fmt.Errorf("error renewing task lease: %w", err)
 			}
 		}
@@ -270,10 +285,12 @@ func (mt *Client) RunWithLease(ctx context.Context, task *masstasker.Task, fn fu
 // Otherwise it "disowns" the task so that another worker can pick it up as soon as they are not busy with older tasks.
 // Any other error that is not a "saved error" is returned by this function after the task is "disowned"
 // If errorGroup is empty, then it doesn't move saved errors to the error group but simply returns them as any other error.
-func (mt *Client) CommitOrMove(ctx context.Context, task *masstasker.Task, err error, errorGroup string) error {
+//
+// Deprecated: Use [Client.Do] with [DeleteOrMove]
+func (c *Client) CommitOrMove(ctx context.Context, task *masstasker.Task, err error, errorGroup string) error {
 	if err == nil {
 		// mark the task as done
-		return mt.Delete(ctx, task)
+		return c.Delete(ctx, task)
 	}
 	if errorGroup != "" {
 		if IsSavedError(err) {
@@ -284,7 +301,7 @@ func (mt *Client) CommitOrMove(ctx context.Context, task *masstasker.Task, err e
 			} else {
 				task.Error = filtered
 			}
-			return mt.Move(ctx, errorGroup, task)
+			return c.Move(ctx, errorGroup, task)
 		}
 	}
 	// for other errors let's first disown the task so that other workers can pick it up
@@ -294,7 +311,7 @@ func (mt *Client) CommitOrMove(ctx context.Context, task *masstasker.Task, err e
 	// This case catches transient errors (which we want to be transparently retried)
 	// and misconfigurations where we want to notice that the worker is crashing.
 
-	_ = mt.Disown(ctx, task) // error ignored intentionally since resetting NotBefore is just an optimization
+	_ = c.Disown(ctx, task) // error ignored intentionally since resetting NotBefore is just an optimization
 
 	return err
 }

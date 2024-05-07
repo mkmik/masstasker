@@ -105,10 +105,10 @@ func DeleteOrMove(errorGroup string, tasks ...*Task) func(err error) MultiOp {
 }
 
 // Do performs a transactional update of the masstasker state by performing all the provided operations atomically.
-func (mt *Client) Do(ctx context.Context, ops ...MultiOp) error {
+func (c *Client) Do(ctx context.Context, ops ...MultiOp) error {
 	var r multiRequest
 	for _, op := range ops {
 		op(ctx, &r)
 	}
-	return mt.ComplexUpdate(ctx, r.create, r.delete, r.pred)
+	return c.complexUpdate(ctx, r.create, r.delete, r.pred)
 }
