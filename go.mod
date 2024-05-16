@@ -3,7 +3,7 @@ module mkm.pub/masstasker
 go 1.22
 
 require (
-	github.com/Workiva/go-datastructures v1.1.4
+	github.com/Workiva/go-datastructures v1.1.5
 	github.com/alecthomas/kong v0.9.0
 	github.com/jonboulle/clockwork v0.4.0
 	github.com/prometheus/client_golang v1.19.1
