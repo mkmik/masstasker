@@ -29,6 +29,8 @@ type CLI struct {
 
 	BootstrapTaskGroup string `name:"bootstrap-task-group" help:"Insert an empty task once in the given group at first start"`
 
+	MaxMsgSize int `name:"max-msg-size" help:"grpc max message size. if 0 the default is used"`
+
 	Version kong.VersionFlag `name:"version" help:"Print version information and quit"`
 }
 
@@ -59,7 +61,15 @@ func (flags *CLI) Run(*Context) error {
 	}()
 
 	log.Printf("serving on %s", flags.ListenRPC)
-	return server.ListenAndServe(context.Background(), flags.ListenRPC, server.WithBootstrapTaskGroup(flags.BootstrapTaskGroup))
+
+	opts := []server.ListenOpt{
+		server.WithBootstrapTaskGroup(flags.BootstrapTaskGroup),
+	}
+	if size := flags.MaxMsgSize; size > 0 {
+		opts = append(opts, server.WithMaxMsgSize(size))
+	}
+
+	return server.ListenAndServe(context.Background(), flags.ListenRPC, opts...)
 }
 
 var (

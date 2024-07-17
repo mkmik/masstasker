@@ -26,6 +26,15 @@ func WithBootstrapTaskGroup(group string) ListenOpt {
 	}
 }
 
+func WithMaxMsgSize(size int) ListenOpt {
+	return func(o *listenOpts) {
+		o.grpcOptions = append(o.grpcOptions,
+			grpc.MaxRecvMsgSize(size),
+			grpc.MaxSendMsgSize(size),
+		)
+	}
+}
+
 // Create a new MassTasker GRPC server and not start it yet
 func Listen(ctx context.Context, addr string, opts ...ListenOpt) (*grpc.Server, net.Listener, error) {
 	l, err := net.Listen("tcp", addr) // listen on a random free port
