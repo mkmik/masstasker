@@ -37,7 +37,7 @@ jobs:
           ./masstasker --help
           ./masstasker --version
 
-      - uses: ko-build/setup-ko@3aebd0597dc1e9d1a26bcfdb7cbeb19c131d3037 # v0.7
+      - uses: ko-build/setup-ko@d982fec422852203cfb2053a8ec6ad302280d04d # v0.8
 
       - name: Build OCI image using ko
         if: github.event.pull_request.head.repo.fork
